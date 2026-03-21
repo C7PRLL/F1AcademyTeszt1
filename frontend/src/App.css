@@ -2517,16 +2517,8 @@ input, select, textarea {
 	}
 
 		.image:before {
-			content: '';
-			display: block;
-			position: absolute;
-			left: 0;
-			top: 0;
-			background-image: url("images/overlay.png");
-			width: 100%;
-			height: 100%;
-			z-index: 1;
-		}
+    display: none;
+}
 
 		.image img {
 			border-radius: 4px;
@@ -3065,8 +3057,8 @@ input, select, textarea {
 			width: 100%;
 		}
 
-		.spotlight .image.main {
-			display: none;
+			.spotlight .image.main {
+    		display: block; 
 		}
 
 			.spotlight .image.main img {
@@ -3470,18 +3462,17 @@ input, select, textarea {
 		}
 
 		#banner:after {
-			background-image: -moz-linear-gradient(top, rgba(23, 24, 32, 0.95), rgba(23, 24, 32, 0.95)), url("frontend/public/images/avtosport-formula-1-bolid.jpg");;
-			background-image: -webkit-linear-gradient(top, rgba(23, 24, 32, 0.95), rgba(23, 24, 32, 0.95)), url("images/overlay.png");;
-			background-image: -ms-linear-gradient(top, rgba(23, 24, 32, 0.95), rgba(23, 24, 32, 0.95)), url("images/overlay.png");;
-			background-image: linear-gradient(top, rgba(23, 24, 32, 0.95), rgba(23, 24, 32, 0.95)), url("images/overlay.png");;
-			content: '';
-			display: block;
-			height: 100%;
-			left: 0;
-			position: absolute;
-			top: 0;
-			width: 100%;
-		}
+    background-image: linear-gradient(top, rgba(23, 24, 32, 0.4), rgba(23, 24, 32, 0.4)), url("/images/handshake.jpg");
+    background-image: -webkit-linear-gradient(top, rgba(23, 24, 32, 0.4), rgba(23, 24, 32, 0.4)), url("/images/handshake.jpg");
+    background-image: linear-gradient(to bottom, rgba(23, 24, 32, 0.4), rgba(23, 24, 32, 0.4)), url("/images/handshake.jpg");
+    content: '';
+    display: block;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
 
 		#banner .content {
 			display: inline-block;
@@ -4108,3 +4099,29 @@ input, select, textarea {
 					}
 
 	}
+	/* --- PARALLAX BEÁLLÍTÁSOK --- */
+#banner, #one, #two, #three {
+    background-attachment: fixed !important;
+    background-size: cover !important;
+    background-position: center !important;
+}
+
+#one {
+    background-image: linear-gradient(rgba(23, 24, 32, 0.5), rgba(23, 24, 32, 0.5)), url("/images/mv.jpg") !important;
+}
+
+#two {
+    background-image: linear-gradient(rgba(23, 24, 32, 0.5), rgba(23, 24, 32, 0.5)), url("/images/kimi.jpg") !important;
+}
+
+#three {
+    background-image: linear-gradient(rgba(23, 24, 32, 0.8), rgba(23, 24, 32, 0.8)), url("/images/senna.jpg") !important;
+}
+
+/* Kiemeljük a dobozokat a háttér felett */
+.spotlight .content, .wrapper .container {
+    background: rgba(23, 24, 32, 0.8);
+    padding: 3em;
+    border-radius: 10px;
+    z-index: 5;
+}

@@ -18,7 +18,6 @@ function Home() {
       {/* 2. SPOTLIGHT 1 */}
       <section id="one" className="spotlight style1 bottom">
         <span className="image fit main">
-          <img src="https://cparici.com/wp-content/uploads/2025/08/cparici-2025-08-01T205416.688.jpg" alt="F1 History" />
         </span>
         <div className="content">
           <div className="container">
@@ -44,7 +43,6 @@ function Home() {
       {/* 2. SPOTLIGHT 2 */}
       <section id="two" className="spotlight style2 right">
         <span className="image fit main">
-          <img src="https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000000/content/dam/fom-website/manual/Misc/Verstappenbacktobacktitles/verstappen-hero.webp" alt="Verstappen" />
         </span>
         <div className="content">
           <header>
