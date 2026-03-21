@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom';
 
 function Header() {
-  // Megnézzük, hogy van-e elmentett felhasználó a böngésző memóriájában (localStorage)
   const user = JSON.parse(localStorage.getItem('user'));
 
-  // Kijelentkezés funkció: töröljük a memóriát és frissítjük az oldalt
   const handleLogout = () => {
     localStorage.removeItem('user');
-    window.location.reload(); // Frissítjük az oldalt, hogy a menü visszaálljon
+    window.location.reload();
   };
 
   return (
@@ -24,7 +22,12 @@ function Header() {
           {/* Kondicionális renderelés: Ha be van lépve a júzer */}
           {user ? (
             <>
-              <li style={{ color: '#e44c65', fontWeight: '300' }}>Szia, {user.name}!</li>
+              <li><Link to="/booking">Időpontfoglalás</Link></li>
+              
+              {/* --- IDE SZÚRD BE AZ ÚJ SORT: --- */}
+              <li><Link to="/profile">Profilom</Link></li>
+              
+              <li style={{ color: '#e44c65', fontWeight: '300', marginLeft: '15px' }}>Szia, {user.name}!</li>
               <li>
                 <button 
                   onClick={handleLogout} 
@@ -36,7 +39,6 @@ function Header() {
               </li>
             </>
           ) : (
-            /* Ha nincs belépve senki */
             <>
               <li><Link to="/register">Regisztráció</Link></li>
               <li><Link to="/login" className="button primary">Bejelentkezés</Link></li>

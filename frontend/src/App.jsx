@@ -3,7 +3,9 @@ import Header from './components/Header';
 import Home from './pages/Home';
 import Pilots from './pages/Pilots'; 
 import Register from './pages/Register';
-import Login from './pages/Login'; // 1. ÚJ IMPORT A BEJELENTKEZÉSHEZ
+import Login from './pages/Login'; 
+import Booking from './pages/Booking';
+import Profile from './pages/Profile';
 import './App.css'; 
 
 function App() {
@@ -16,9 +18,11 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/pilots" element={<Pilots />} />
           <Route path="/register" element={<Register />} /> 
-          
-          {/* 2. ÚJ ÚTVONAL A BEJELENTKEZÉSHEZ: */}
           <Route path="/login" element={<Login />} /> 
+          <Route path="/booking" element={<Booking />} />
+          
+          {/* 2. LÉPÉS: VEDD FEL AZ ÚTVONALAT */}
+          <Route path="/profile" element={<Profile />} />
           
           {/* Később ide jöhet majd a: <Route path="/diagrams" element={<Diagrams />} /> */}
         </Routes>
