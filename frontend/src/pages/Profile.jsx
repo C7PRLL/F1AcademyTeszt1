@@ -7,6 +7,7 @@ function Profile() {
     const [formData, setFormData] = useState({ bio: '', favorite_team: '', favorite_pilot: '' });
     const [image, setImage] = useState(null);
 
+    // Felhasználói adatok lekérése a backendről
     useEffect(() => {
         axios.get(`http://localhost:5000/api/users/${localUser.id}`)
             .then(res => {
@@ -16,9 +17,11 @@ function Profile() {
                     favorite_team: res.data.favorite_team || '', 
                     favorite_pilot: res.data.favorite_pilot || '' 
                 });
-            });
-    }, []);
+            })
+            .catch(err => console.error("Hiba az adatok lekérésekor:", err));
+    }, [localUser.id]);
 
+    // Profil frissítése
     const handleUpdate = async (e) => {
         e.preventDefault();
         const data = new FormData();
@@ -31,12 +34,14 @@ function Profile() {
             const res = await axios.put(`http://localhost:5000/api/users/update/${localUser.id}`, data);
             setUser(res.data.user);
             alert("Sikeres mentés!");
+            // Oldal újratöltése a friss adatok (különösen a kép) megjelenítéséhez
+            window.location.reload(); 
         } catch (err) {
             alert("Hiba a mentés során.");
         }
     };
 
-    if (!user) return <p>Betöltés...</p>;
+    if (!user) return <div id="main" className="wrapper style1"><div className="container"><p>Betöltés...</p></div></div>;
 
     return (
         <div id="main" className="wrapper style1">
@@ -47,38 +52,64 @@ function Profile() {
                 </header>
 
                 <div className="row gtr-150">
+                    {/* BAL OLDAL: Profilkép és Alapadatok */}
                     <div className="col-4 col-12-medium align-center">
-                        {/* Profilkép megjelenítése */}
-                        <span className="image fit" style={{ borderRadius: '50%', overflow: 'hidden', width: '200px', height: '200px', margin: '0 auto' }}>
-                            <img src={user.profile_image ? `http://localhost:5000/uploads/${user.profile_image}` : "https://via.placeholder.com/200?text=Nincs+kép"} alt="Profile" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
-                        </span>
-                        <h3>{user.name}</h3>
+                        {/* A stílust most már az App.css .profile-pic-wrapper osztálya kezeli */}
+                        <div className="profile-pic-wrapper">
+                            <img 
+                                src={user.profile_image ? `http://localhost:5000/uploads/${user.profile_image}` : "https://via.placeholder.com/200?text=Nincs+kép"} 
+                                alt="Profile" 
+                            />
+                        </div>
+                        <h3 style={{ color: '#fff', marginBottom: '0.2em' }}>{user.name}</h3>
+                        <p style={{ opacity: 0.5, fontSize: '0.9em' }}>{user.email}</p>
                     </div>
 
+                    {/* JOBB OLDAL: Szerkesztő űrlap */}
                     <div className="col-8 col-12-medium">
                         <form onSubmit={handleUpdate}>
                             <div className="row gtr-uniform">
                                 <div className="col-12">
                                     <label>Rólam (Bio):</label>
-                                    <textarea value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} rows="3"></textarea>
+                                    <textarea 
+                                        placeholder="Írj magadról pár szót..." 
+                                        value={formData.bio} 
+                                        onChange={(e) => setFormData({...formData, bio: e.target.value})} 
+                                        rows="3"
+                                    ></textarea>
                                 </div>
                                 <div className="col-6 col-12-xsmall">
                                     <label>Kedvenc Csapat:</label>
-                                    <input type="text" value={formData.favorite_team} onChange={(e) => setFormData({...formData, favorite_team: e.target.value})} />
+                                    <input 
+                                        type="text" 
+                                        value={formData.favorite_team} 
+                                        onChange={(e) => setFormData({...formData, favorite_team: e.target.value})} 
+                                    />
                                 </div>
                                 <div className="col-6 col-12-xsmall">
                                     <label>Kedvenc Versenyző:</label>
-                                    <input type="text" value={formData.favorite_pilot} onChange={(e) => setFormData({...formData, favorite_pilot: e.target.value})} />
+                                    <input 
+                                        type="text" 
+                                        value={formData.favorite_pilot} 
+                                        onChange={(e) => setFormData({...formData, favorite_pilot: e.target.value})} 
+                                    />
                                 </div>
                                 <div className="col-12">
                                     <label>Profilkép feltöltése:</label>
-                                    <input type="file" onChange={(e) => setImage(e.target.files[0])} />
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        onChange={(e) => setImage(e.target.files[0])} 
+                                    />
                                 </div>
-                                <div className="col-12">
-                                    <ul className="actions">
-                                        <li><input type="submit" value="Profil mentése" className="primary" /></li>
-                                    </ul>
+
+                                {/* KÖZÉPRE RENDEZETT, LETISZTULT MENTÉS GOMB */}
+                                <div className="col-12" style={{ textAlign: 'center', marginTop: '2em' }}>
+                                    <button type="submit" className="button primary" style={{ width: 'auto', minWidth: '250px' }}>
+                                        Változtatások mentése
+                                    </button>
                                 </div>
+                                
                             </div>
                         </form>
                     </div>

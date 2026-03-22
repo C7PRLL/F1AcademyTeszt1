@@ -11,13 +11,13 @@ function Header() {
   return (
     <header id="header">
       <h1 id="logo">
-        <Link style={{ border: "none" }} to="/">F1 ACADÉMIA</Link>
+        <Link style={{ border: "none" }} to="/">F1 AKADÉMIA</Link>
       </h1>
       <nav id="nav">
         <ul>
           <li><Link to="/">Főoldal</Link></li>
           <li><Link to="/pilots">Pilóták</Link></li>
-          <li><Link to="/diagrams">Diagramok</Link></li>
+          <li><Link to="/diagrams">Statisztikák</Link></li>
 
           {/* Kondicionális renderelés: Ha be van lépve a júzer */}
           {user ? (

@@ -10,7 +10,7 @@ function Register() {
         try {
             const res = await axios.post('http://localhost:5000/api/users/register', formData);
             setMessage(res.data.message);
-            setFormData({ name: '', email: '', password: '' }); // Űrlap ürítése
+            setFormData({ name: '', email: '', password: '' }); 
         } catch (err) {
             setMessage("Hiba történt: " + err.response.data.error);
         }

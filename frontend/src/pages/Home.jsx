@@ -3,95 +3,65 @@ import { Link } from 'react-router-dom';
 function Home() {
   return (
     <>
-      {/* 1. BANNER */}
-      <section id="banner">
-        <div className="content">
+      <section id="banner" className="parallax-section">
+        <div className="glass-box">
           <header>
             <h2>F1 Akadémia</h2>
-            <p>Ahol a sebesség, a szenvedély<br />
-            és a történelem találkozik.</p>
+            <p>Ahol a sebesség, a szenvedély<br /> és a történelem találkozik.</p>
           </header>
         </div>
-        <a href="#one" className="goto-next scrolly">Tovább</a>
       </section>
 
-      {/* 2. SPOTLIGHT 1 */}
-      <section id="one" className="spotlight style1 bottom">
-        <span className="image fit main">
-        </span>
-        <div className="content">
-          <div className="container">
-            <div className="row">
-              <div className="col-4 col-12-medium">
-                <header>
-                  <h2>A Formula–1 Aranykora</h2>
-                  <p>1950 - 2006</p>
-                </header>
-              </div>
-              <div className="col-4 col-12-medium">
-                <p>Oldalunk célja, hogy elhozzuk neked a Formula–1 aranykorának minden pillanatát. Merülj el a sportág gyökereiben, és fedezd fel, hogyan vált a benzingőzös álmokból a világ legizgalmasabb versenysorozata!</p>
-              </div>
-              <div className="col-4 col-12-medium">
-                <p>Ismerd meg a legendás pilótákat, akik örökre beírták nevüket a történelembe – Fangio, Lauda, Senna, Prost, Schumacher és sokan mások. Fedezd fel a csapatokat és konstrukciókat.</p>
-              </div>
-            </div>
+      <section id="one" className="parallax-section">
+        <div className="glass-box">
+          <div className="spotlight-content">
+            <header>
+              <h2>A Formula–1 Aranykora</h2>
+              <p>1950 - 2006</p>
+            </header>
+            <p>Merülj el a sportág gyökereiben, és fedezd fel, hogyan vált a világ legizgalmasabb versenysorozatává!</p>
           </div>
         </div>
-        <a href="#two" className="goto-next scrolly">Tovább</a>
       </section>
 
-      {/* 2. SPOTLIGHT 2 */}
-      <section id="two" className="spotlight style2 right">
-        <span className="image fit main">
-        </span>
-        <div className="content">
-          <header>
-            <h2>Legendák nyomában</h2>
-            <p>Sennától Verstappenig</p>
-          </header>
-          <p>A hősöd Ayrton Senna, Michael Schumacher vagy Max Verstappen? Tanulj róluk nálunk – nézd meg, hogyan emelkedtek fel, hogyan győztek, és mi tette őket legendává. Csatlakozz az F1 Akadémiához!</p>
-          <ul className="actions">
-            <li><Link to="/register" className="button">Regisztráció</Link></li>
-          </ul>
+      <section id="two" className="parallax-section">
+        <div className="glass-box">
+          <div className="spotlight-content">
+            <header>
+              <h2>Legendák nyomában</h2>
+              <p>Sennától Verstappenig</p>
+            </header>
+            <p>Csatlakozz az F1 Akadémiához, és ismerd meg a hősök útját a csúcsig.</p>
+            <ul className="actions">
+              <li><Link to="/register" className="button primary">Regisztráció</Link></li>
+            </ul>
+          </div>
         </div>
-        <a href="#three" className="goto-next scrolly">Tovább</a>
       </section>
 
-      {/* 3. FEATURES */}
-      <section id="three" className="wrapper style1 special fade-up">
-        <div className="container">
-          <header className="major">
+      <section id="three" className="parallax-section">
+        <div className="glass-box container">
+          <header>
             <h2>Funkciók</h2>
             <p>Fedezd fel az adatbázist</p>
           </header>
           
-          <div className="row gtr-uniform features-row">
-            <section className="col-4 col-6-medium col-12-xsmall">
-              <div className="feature-box">
-                <span className="icon solid alt major fa-users"></span>
-                <h3>Pilóták</h3>
-                <p>Részletes adatbázis a jelenlegi és múltbéli versenyzőkről.</p>
-                <Link to="/pilots" className="button small">Böngészés</Link>
-              </div>
-            </section>
-            
-            <section className="col-4 col-6-medium col-12-xsmall">
-              <div className="feature-box">
-                <span className="icon solid alt major fa-chart-area"></span>
-                <h3>Diagramok</h3>
-                <p>Látványos grafikonok és DNF statisztikák.</p>
-                <Link to="/diagrams" className="button small">Megtekintés</Link>
-              </div>
-            </section>
-            
-            <section className="col-4 col-6-medium col-12-xsmall">
-              <div className="feature-box">
-                <span className="icon solid alt major fa-database"></span>
-                <h3>CRUD Műveletek</h3>
-                <p>Adatok kezelése, új pilóták felvétele.</p>
-                <Link to="/pilots" className="button small">Kezelés</Link>
-              </div>
-            </section>
+          <div className="features-grid">
+            <div className="feature-box">
+              <h3>Pilóták</h3>
+              <p>Részletes adatbázis versenyzőkről.</p>
+              <Link to="/pilots" className="button small">Böngészés</Link>
+            </div>
+            <div className="feature-box">
+              <h3>Diagramok</h3>
+              <p>Látványos statisztikák.</p>
+              <Link to="/diagrams" className="button small">Megtekintés</Link>
+            </div>
+            <div className="feature-box">
+              <h3>Időpontok</h3>
+              <p>Foglalj helyet a pályán.</p>
+              <Link to="/booking" className="button small">Foglalás</Link>
+            </div>
           </div>
         </div>
       </section>
