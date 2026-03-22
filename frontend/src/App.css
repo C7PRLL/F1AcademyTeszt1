@@ -1,14 +1,14 @@
 @import url("https://fonts.googleapis.com/css?family=Roboto:100,300,400,700");
 
-/* --- 1. VÁLTOZÓK --- */
+/* --- 1. VÁLTOZÓK ÉS ALAPOK --- */
 :root {
     --f1-piros: #e44c65;
     --hatter-sotet: #1c1d26;
     --doboz-szurke: #272833;
     --szoveg-feher: rgba(255, 255, 255, 0.75);
+    --glass: rgba(23, 24, 32, 0.85);
 }
 
-/* --- 2. ALAPOK --- */
 * {
     margin: 0;
     padding: 0;
@@ -43,7 +43,7 @@ a {
     margin: 0 auto;
 }
 
-/* --- 3. FIX HEADER --- */
+/* --- 2. FIXÁLT FEJLÉC ÉS ELTOLÁS --- */
 #header {
     background: rgba(23, 24, 32, 0.95);
     height: 4em;
@@ -57,13 +57,13 @@ a {
 #nav ul { display: flex; list-style: none; gap: 1.5em; align-items: center; }
 #nav ul li a { color: #ffffff; font-size: 0.85em; }
 
-/* Az oldalak (Pilots, Booking, Profile) eltolása a léc alól */
+/* Minden oldal (kivéve a főoldali parallax) eltolása a menü alól */
 .wrapper {
-    padding-top: 6em !important; 
+    padding-top: 7em !important; 
     min-height: 100vh;
 }
 
-/* --- 4. PARALLAX (FŐOLDAL) --- */
+/* --- 3. PARALLAX MOTOR (FŐOLDAL) --- */
 .parallax-section {
     position: relative;
     min-height: 100vh;
@@ -76,12 +76,12 @@ a {
 }
 
 #banner { background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("/images/handshake.jpg"); }
-#one    { background-image: linear-gradient(rgba(23, 24, 32, 0.8), rgba(23, 24, 32, 0.8)), url("/images/mv.jpg"); }
-#two    { background-image: linear-gradient(rgba(23, 24, 32, 0.8), rgba(23, 24, 32, 0.8)), url("/images/kimi.jpg"); }
+#one    { background-image: linear-gradient(var(--glass), var(--glass)), url("/images/mv.jpg"); }
+#two    { background-image: linear-gradient(var(--glass), var(--glass)), url("/images/kimi.jpg"); }
 #three  { background-image: linear-gradient(rgba(28, 29, 38, 0.95), rgba(28, 29, 38, 0.95)), url("/images/senna.jpg"); }
 
 .glass-box {
-    background: rgba(23, 24, 32, 0.85);
+    background: var(--glass);
     padding: 3em;
     border-radius: 10px;
     border-top: 4px solid var(--f1-piros);
@@ -89,11 +89,37 @@ a {
     margin: 0 auto;
 }
 
-/* --- 5. ŰRLAPOK --- */
-label {
-    display: block; text-align: left; color: var(--f1-piros);
-    font-weight: bold; font-size: 0.8em; margin-bottom: 0.5em;
+/* --- 4. PÁLYABEMUTATÓ SPECIÁLIS (AI-KÉP VÉDELEMMEL) --- */
+.container.narrow {
+    max-width: 850px; /* Keskenyebb sáv az olvashatóságért */
 }
+
+.track-block {
+    margin-bottom: 5em;
+    text-align: left;
+}
+
+.track-block h3 { color: var(--f1-piros); margin-bottom: 0.8em; }
+
+.track-img-wrap {
+    width: 100%;
+    max-width: 600px; /* Korlátozott méret, hogy ne látsszanak az AI hibák */
+    margin: 2em auto;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+.track-img-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: brightness(0.9) contrast(1.1); /* Jótékony sötétítés és kontraszt */
+}
+
+/* --- 5. ŰRLAPOK ÉS GOMBOK (OKOSÍTVA) --- */
+label { display: block; text-align: left; color: var(--f1-piros); font-weight: bold; font-size: 0.8em; margin-bottom: 0.5em; }
 
 input, select, textarea {
     width: 100%; padding: 0.9em;
@@ -104,15 +130,13 @@ input, select, textarea {
 }
 
 select option { background-color: var(--hatter-sotet); color: white; }
-input:focus, select:focus { border-color: var(--f1-piros); outline: none; }
 
-/* --- 6. GOMBOK (OKOSÍTVA - AUTOMATIKUSAN KÖZÉPRE IGAZODIK) --- */
 .button {
-    display: block;          /* Blokként viselkedik */
-    margin: 2em auto;        /* KÖZÉPRE TESZI MAGÁT */
-    width: fit-content;      /* Csak akkora, amekkora a szöveg */
-    min-width: 250px;        /* De van egy szép minimum szélessége */
-    padding: 0.8em 2em;
+    display: block;
+    margin: 2em auto; /* Automatikusan középre teszi magát mindenhol */
+    width: fit-content;
+    min-width: 250px;
+    padding: 0.8em 2.5em;
     background: transparent;
     border: 1px solid var(--f1-piros);
     color: #ffffff !important;
@@ -120,45 +144,36 @@ input:focus, select:focus { border-color: var(--f1-piros); outline: none; }
     cursor: pointer;
     text-align: center;
     text-transform: uppercase;
-    font-weight: 400;
     transition: 0.3s;
 }
 
 .button.primary { background-color: var(--f1-piros); border: none; }
 .button:hover { background-color: var(--f1-piros); box-shadow: 0 0 15px rgba(228, 76, 101, 0.4); }
 
-/* --- 7. TÁBLÁZATOK ÉS PROFIL --- */
-.table-wrapper {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 1.5em; border-radius: 8px; margin: 2em 0; overflow-x: auto;
-}
-
+/* --- 6. TÁBLÁZATOK ÉS PROFIL --- */
+.table-wrapper { background: rgba(0, 0, 0, 0.3); padding: 1.5em; border-radius: 8px; margin: 2em 0; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 table th { color: var(--f1-piros); text-align: left; padding: 1em; border-bottom: 2px solid var(--f1-piros); }
 table td { padding: 1em; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 
 .profile-pic-wrapper {
-    width: 200px; height: 200px;
-    margin: 0 auto 1.5em; border-radius: 50%;
-    overflow: hidden; border: 4px solid var(--f1-piros);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    width: 200px; height: 200px; margin: 0 auto 1.5em; border-radius: 50%;
+    overflow: hidden; border: 4px solid var(--f1-piros); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 .profile-pic-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* --- 8. NAPTÁR --- */
-.calendar-container {
-    background: #ffffff; padding: 20px; border-radius: 8px;
-    color: #333333; margin-top: 2em;
-}
+/* --- 7. NAPTÁR ÉS FOOTER --- */
+.calendar-container { background: #ffffff; padding: 20px; border-radius: 8px; color: #333; margin-top: 2em; }
 .fc .fc-button-primary { background-color: var(--hatter-sotet) !important; border-color: var(--f1-piros) !important; }
 .fc .fc-button-primary:hover { background-color: var(--f1-piros) !important; }
 
-/* --- 9. RESPONSIVE --- */
+#footer { background-color: #181920; padding: 4em 0; text-align: center; font-size: 0.8em; }
+.copyright { list-style: none; color: rgba(255, 255, 255, 0.4); }
+
+/* --- 8. RESPONSIVE --- */
 @media (max-width: 768px) {
     .parallax-section { background-attachment: scroll; }
     #header { height: auto; flex-direction: column; padding: 1em; }
     #nav ul { margin-top: 10px; gap: 0.8em; flex-wrap: wrap; justify-content: center; }
     .button { min-width: 100%; }
 }
-
-#footer { background-color: #181920; padding: 4em 0; text-align: center; font-size: 0.8em; }

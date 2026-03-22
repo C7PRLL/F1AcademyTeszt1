@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Login from './pages/Login'; 
 import Booking from './pages/Booking';
 import Profile from './pages/Profile';
+import Track from './pages/Track';
 import './App.css'; 
 
 function App() {
@@ -20,14 +21,10 @@ function App() {
           <Route path="/register" element={<Register />} /> 
           <Route path="/login" element={<Login />} /> 
           <Route path="/booking" element={<Booking />} />
-          
-          {/* 2. LÉPÉS: VEDD FEL AZ ÚTVONALAT */}
           <Route path="/profile" element={<Profile />} />
-          
+          <Route path="/track" element={<Track />} />
           {/* Később ide jöhet majd a: <Route path="/diagrams" element={<Diagrams />} /> */}
         </Routes>
-        
-        {/* Itt lehet egy Footer komponens is */}
       </div>
     </Router>
   );

@@ -17,7 +17,7 @@ function Home() {
           <div className="spotlight-content">
             <header>
               <h2>A Formula–1 Aranykora</h2>
-              <p>1950 - 2006</p>
+              <p>1950 - 2026</p>
             </header>
             <p>Merülj el a sportág gyökereiben, és fedezd fel, hogyan vált a világ legizgalmasabb versenysorozatává!</p>
           </div>
@@ -53,7 +53,7 @@ function Home() {
               <Link to="/pilots" className="button small">Böngészés</Link>
             </div>
             <div className="feature-box">
-              <h3>Diagramok</h3>
+              <h3>Statisztikák</h3>
               <p>Látványos statisztikák.</p>
               <Link to="/diagrams" className="button small">Megtekintés</Link>
             </div>

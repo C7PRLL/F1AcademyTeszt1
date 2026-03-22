@@ -18,13 +18,12 @@ function Header() {
           <li><Link to="/">Főoldal</Link></li>
           <li><Link to="/pilots">Pilóták</Link></li>
           <li><Link to="/diagrams">Statisztikák</Link></li>
+          <li><Link to="/track">A Pálya</Link></li>
 
-          {/* Kondicionális renderelés: Ha be van lépve a júzer */}
+          {/* Kondicionális renderelés- Ha be van lépve a felhaszn. */}
           {user ? (
             <>
               <li><Link to="/booking">Időpontfoglalás</Link></li>
-              
-              {/* --- IDE SZÚRD BE AZ ÚJ SORT: --- */}
               <li><Link to="/profile">Profilom</Link></li>
               
               <li style={{ color: '#e44c65', fontWeight: '300', marginLeft: '15px' }}>Szia, {user.name}!</li>
