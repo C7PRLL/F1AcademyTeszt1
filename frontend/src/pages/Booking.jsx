@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-// FullCalendar importok
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -13,7 +11,6 @@ function Booking() {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     
-    // Űrlap állapotok
     const [activityType, setActivityType] = useState('Bérgokart');
     const [bookingDate, setBookingDate] = useState('');
     const [timeSlot, setTimeSlot] = useState('10:00 - 12:00');
@@ -25,26 +22,32 @@ function Booking() {
     };
 
     useEffect(() => {
+        setTimeSlot(slots[activityType][0]);
+    }, [activityType]);
+
+    useEffect(() => {
         if (!user) navigate('/login');
         else fetchBookings();
     }, []);
 
     const fetchBookings = async () => {
-        const res = await axios.get(`http://localhost:5000/api/bookings/my-bookings/${user.id}`);
-        
-        // Adatok átalakítása FullCalendar formátumra
-        const formattedEvents = res.data.map(b => {
-            const times = b.time_slot.split(' - ');
-            return {
-                id: b.id,
-                title: b.activity_type,
-                start: `${b.booking_date}T${times[0]}:00`,
-                end: `${b.booking_date}T${times[1]}:00`,
-                backgroundColor: b.activity_type === 'Verseny csomag' ? '#e44c65' : '#39c088',
-                borderColor: 'transparent'
-            };
-        });
-        setEvents(formattedEvents);
+        try {
+            const res = await axios.get(`http://localhost:5000/api/bookings/my-bookings/${user.id}`);
+            const formattedEvents = res.data.map(b => {
+                const times = b.time_slot.split(' - ');
+                return {
+                    id: b.id,
+                    title: b.activity_type,
+                    start: `${b.booking_date}T${times[0]}:00`,
+                    end: `${b.booking_date}T${times[1]}:00`,
+                    backgroundColor: b.activity_type === 'Verseny csomag' ? '#e44c65' : '#39c088',
+                    borderColor: 'transparent'
+                };
+            });
+            setEvents(formattedEvents);
+        } catch (err) {
+            console.error("Hiba:", err);
+        }
     };
 
     const handleBooking = async (e) => {
@@ -58,48 +61,45 @@ function Booking() {
             });
             alert("Sikeres foglalás!");
             fetchBookings();
-        } catch (err) { alert("Hiba történt."); }
+        } catch (err) {
+            alert("Hiba történt a mentéskor.");
+        }
     };
 
     if (!user) return null;
 
     return (
-        <div id="main" className="wrapper style1">
+        <div id="main" className="wrapper">
             <div className="container">
                 <header className="major">
-                    <h2>Pályafoglalási Naptár</h2>
-                    <p>Válassz időpontot és kövesd nyomon a naptárban.</p>
+                    <h2>Időpontfoglalás</h2>
+                    <p>Válaszd ki a típust és az időpontot</p>
                 </header>
 
-                {/* ŰRLAP RÉSZ */}
-                <section className="glass-box" style={{marginBottom: '3em', padding: '20px'}}>
-                    <form onSubmit={handleBooking} className="row gtr-uniform">
-                        <div className="col-4 col-12-xsmall">
-                            <label>Típus</label>
-                            <select value={activityType} onChange={(e) => setActivityType(e.target.value)}>
-                                <option value="Bérgokart">Bérgokart</option>
-                                <option value="Versenygokart">Versenygokart</option>
-                                <option value="Verseny csomag">Verseny csomag</option>
-                            </select>
-                        </div>
-                        <div className="col-3 col-12-xsmall">
-                            <label>Dátum</label>
-                            <input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} required />
-                        </div>
-                        <div className="col-3 col-12-xsmall">
-                            <label>Idősáv</label>
-                            <select value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
-                                {slots[activityType].map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
-                        </div>
-                        <div className="col-2 col-12-xsmall" style={{display: 'flex', alignItems: 'flex-end'}}>
-                            <input type="submit" value="Foglalás" className="primary fit" />
-                        </div>
+                <section className="glass-box" style={{ maxWidth: '800px', margin: '0 auto', padding: '2em' }}>
+                    <form onSubmit={handleBooking}>
+                        <label>Mivel szeretnél menni?</label>
+                        <select value={activityType} onChange={(e) => setActivityType(e.target.value)}>
+                            <option value="Bérgokart">Bérgokart (Standard)</option>
+                            <option value="Versenygokart">Versenygokart (Pro)</option>
+                            <option value="Verseny csomag">Verseny csomag (Gyakorlás)</option>
+                        </select>
+
+                        <label>Dátum</label>
+                        <input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} required />
+
+                        <label>Elérhető idősávok</label>
+                        <select value={timeSlot} onChange={(e) => setTimeSlot(e.target.value)}>
+                            {slots[activityType].map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+
+                        <button type="submit" className="button primary">
+                            Időpont véglegesítése
+                        </button>
                     </form>
                 </section>
 
-                {/* NAPTÁR */}
-                <div className="calendar-container" style={{ background: '#ffffff', padding: '20px', borderRadius: '13px', color: '#333' }}>
+                <div className="calendar-container">
                     <FullCalendar
                         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                         initialView="timeGridWeek"
@@ -108,10 +108,11 @@ function Booking() {
                             center: 'title',
                             right: 'dayGridMonth,timeGridWeek,timeGridDay'
                         }}
-                        events={events}
                         locale="hu"
+                        buttonText={{ today: 'Ma', month: 'Hónap', week: 'Hét', day: 'Nap' }}
+                        events={events}
                         slotMinTime="08:00:00"
-                        slotMaxTime="18:00:00"
+                        slotMaxTime="20:00:00"
                         allDaySlot={false}
                         height="auto"
                     />

@@ -5,51 +5,64 @@ import { useNavigate } from 'react-router-dom';
 function Login() {
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
-    const navigate = useNavigate(); // Ezzel tudjuk átirányítani a júzert a login után
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const res = await axios.post('http://localhost:5000/api/users/login', formData);
             
-            // Elmentjük a felhasználó adatait a böngésző memóriájába (localStorage)
+            // Felhasználó mentése a böngészőbe
             localStorage.setItem('user', JSON.stringify(res.data.user));
             
             alert("Üdvözlünk, " + res.data.user.name + "!");
-            navigate('/'); // Visszavisz a főoldalra
-            window.location.reload(); // Frissítjük a menüt
+            navigate('/'); 
+            window.location.reload(); 
         } catch (err) {
             setError(err.response?.data?.error || "Hiba történt!");
         }
     };
 
     return (
-        <div id="main" className="wrapper style1">
+        <div id="main" className="wrapper">
             <div className="container">
                 <header className="major">
                     <h2>Bejelentkezés</h2>
                     <p>Lépj be a fiókodba a kezelőfelület eléréséhez.</p>
                 </header>
 
-                <section className="container xsmall">
+                {/* Letisztult üveg-doboz, fix szélességgel középen */}
+                <section className="glass-box" style={{ maxWidth: '500px', margin: '0 auto', padding: '2em' }}>
                     <form onSubmit={handleSubmit}>
-                        <div className="row gtr-uniform">
-                            <div className="col-12">
-                                <input type="email" placeholder="E-mail cím" 
-                                    onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-                            </div>
-                            <div className="col-12">
-                                <input type="password" placeholder="Jelszó" 
-                                    onChange={(e) => setFormData({...formData, password: e.target.value})} required />
-                            </div>
-                            <div className="col-12">
-                                <ul className="actions special">
-                                    <li><input type="submit" value="Belépés" className="primary" /></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <label>E-mail cím</label>
+                        <input 
+                            type="email" 
+                            placeholder="pelda@email.com" 
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                            required 
+                        />
+
+                        <label>Jelszó</label>
+                        <input 
+                            type="password" 
+                            placeholder="••••••••" 
+                            value={formData.password}
+                            onChange={(e) => setFormData({...formData, password: e.target.value})} 
+                            required 
+                        />
+
+                        {/* A gomb az App.css miatt már magától középen lesz és sleek */}
+                        <button type="submit" className="button primary">
+                            Bejelentkezés
+                        </button>
                     </form>
-                    {error && <p style={{color: '#e44c65', textAlign: 'center', marginTop: '1em'}}>{error}</p>}
+                    
+                    {error && (
+                        <p style={{ color: '#e44c65', textAlign: 'center', marginTop: '1em', fontWeight: 'bold' }}>
+                            {error}
+                        </p>
+                    )}
                 </section>
             </div>
         </div>

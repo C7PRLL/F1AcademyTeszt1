@@ -11,42 +11,61 @@ function Register() {
             const res = await axios.post('http://localhost:5000/api/users/register', formData);
             setMessage(res.data.message);
             setFormData({ name: '', email: '', password: '' }); 
+            alert("Sikeres regisztráció! Most már bejelentkezhetsz.");
         } catch (err) {
-            setMessage("Hiba történt: " + err.response.data.error);
+            setMessage("Hiba történt: " + (err.response?.data?.error || "Ismeretlen hiba"));
         }
     };
 
     return (
-        <div id="main" className="wrapper style1">
+        <div id="main" className="wrapper">
             <div className="container">
                 <header className="major">
                     <h2>Regisztráció</h2>
                     <p>Csatlakozz az F1 Akadémia közösségéhez!</p>
                 </header>
 
-                <section className="container medium">
+                {/* Letisztult üveg-doboz, fix szélességgel középen */}
+                <section className="glass-box" style={{ maxWidth: '600px', margin: '0 auto', padding: '2em' }}>
                     <form onSubmit={handleSubmit}>
-                        <div className="row gtr-uniform">
-                            <div className="col-12">
-                                <input type="text" placeholder="Név" value={formData.name}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-                            </div>
-                            <div className="col-12">
-                                <input type="email" placeholder="E-mail cím" value={formData.email}
-                                    onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-                            </div>
-                            <div className="col-12">
-                                <input type="password" placeholder="Jelszó" value={formData.password}
-                                    onChange={(e) => setFormData({...formData, password: e.target.value})} required />
-                            </div>
-                            <div className="col-12">
-                                <ul className="actions special">
-                                    <li><input type="submit" value="Regisztráció" className="primary" /></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <label>Teljes név</label>
+                        <input 
+                            type="text" 
+                            placeholder="pl. Kis Pista" 
+                            value={formData.name}
+                            onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                            required 
+                        />
+
+                        <label>E-mail cím</label>
+                        <input 
+                            type="email" 
+                            placeholder="pelda@email.com" 
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                            required 
+                        />
+
+                        <label>Jelszó</label>
+                        <input 
+                            type="password" 
+                            placeholder="••••••••" 
+                            value={formData.password}
+                            onChange={(e) => setFormData({...formData, password: e.target.value})} 
+                            required 
+                        />
+
+                        {/* A gomb az App.css miatt már magától középen lesz */}
+                        <button type="submit" className="button primary">
+                            Fiók létrehozása
+                        </button>
                     </form>
-                    {message && <p style={{textAlign: 'center', color: '#e44c65'}}>{message}</p>}
+
+                    {message && (
+                        <p style={{ textAlign: 'center', color: '#e44c65', marginTop: '1em', fontWeight: 'bold' }}>
+                            {message}
+                        </p>
+                    )}
                 </section>
             </div>
         </div>

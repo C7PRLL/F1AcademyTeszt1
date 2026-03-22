@@ -4,80 +4,116 @@ import axios from 'axios';
 function Pilots() {
     const [pilots, setPilots] = useState([]);
     const [newPilot, setNewPilot] = useState({ name: '', nationality: '', is_active: true });
+    
+    // Felhasználó ellenőrzése
+    const user = JSON.parse(localStorage.getItem('user'));
 
-    // Pilóták betöltése
     const fetchPilots = async () => {
-        const res = await axios.get('http://localhost:5000/api/pilots');
-        setPilots(res.data);
+        try {
+            const res = await axios.get('http://localhost:5000/api/pilots');
+            setPilots(res.data);
+        } catch (err) {
+            console.error("Hiba a betöltéskor:", err);
+        }
     };
 
     useEffect(() => { fetchPilots(); }, []);
 
-    // Új pilóta beküldése
     const handleAdd = async (e) => {
         e.preventDefault();
-        await axios.post('http://localhost:5000/api/pilots', newPilot);
-        setNewPilot({ name: '', nationality: '', is_active: true });
-        fetchPilots(); // Lista frissítése
+        try {
+            await axios.post('http://localhost:5000/api/pilots', newPilot);
+            setNewPilot({ name: '', nationality: '', is_active: true });
+            fetchPilots();
+            alert("Pilóta mentve!");
+        } catch (err) {
+            alert("Hiba történt a mentéskor.");
+        }
     };
 
-    // Törlés
     const handleDelete = async (id) => {
-        if (window.confirm("Biztosan törölni akarod?")) {
-            await axios.delete(`http://localhost:5000/api/pilots/${id}`);
-            fetchPilots(); // Lista frissítése
+        if (window.confirm("Biztosan törlöd?")) {
+            try {
+                await axios.delete(`http://localhost:5000/api/pilots/${id}`);
+                fetchPilots();
+            } catch (err) {
+                alert("Hiba a törléskor.");
+            }
         }
     };
 
     return (
-        <div id="main" className="wrapper style1">
+        <div id="main" className="wrapper">
             <div className="container">
                 <header className="major">
-                    <h2>Pilóták kezelése</h2>
-                    <p>Adatok hozzáadása és törlése az adatbázisból.</p>
+                    <h2>Pilóták nyilvántartása</h2>
+                    <p>{user ? "Adatbázis karbantartás" : "Böngéssz a pilóták között"}</p>
                 </header>
 
-                {/* ÚJ PILÓTA ŰRLAP */}
-                <section style={{marginBottom: '3em'}}>
-                    <form onSubmit={handleAdd}>
-                        <div className="row gtr-uniform">
-                            <div className="col-4 col-12-xsmall">
-                                <input type="text" placeholder="Név" value={newPilot.name}
-                                    onChange={(e) => setNewPilot({...newPilot, name: e.target.value})} required />
+                {/* Új pilóta (Csak belépve) */}
+                {user && (
+                    <section className="glass-box">
+                        <h3>Új pilóta felvétele</h3>
+                        <form onSubmit={handleAdd}>
+                            <div className="row gtr-uniform">
+                                <div className="col-6 col-12-xsmall">
+                                    <label>Név</label>
+                                    <input 
+                                        type="text" 
+                                        value={newPilot.name}
+                                        onChange={(e) => setNewPilot({...newPilot, name: e.target.value})} 
+                                        required 
+                                    />
+                                </div>
+                                <div className="col-6 col-12-xsmall">
+                                    <label>Nemzetiség</label>
+                                    <input 
+                                        type="text" 
+                                        value={newPilot.nationality}
+                                        onChange={(e) => setNewPilot({...newPilot, nationality: e.target.value})} 
+                                        required 
+                                    />
+                                </div>
+                                <div className="col-12">
+                                    <button type="submit" className="button primary">
+                                        Mentés
+                                    </button>
+                                </div>
                             </div>
-                            <div className="col-4 col-12-xsmall">
-                                <input type="text" placeholder="Nemzetiség" value={newPilot.nationality}
-                                    onChange={(e) => setNewPilot({...newPilot, nationality: e.target.value})} required />
-                            </div>
-                            <div className="col-4 col-12-xsmall">
-                                <ul className="actions">
-                                    <li><input type="submit" value="Hozzáadás" className="primary" /></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </form>
-                </section>
+                        </form>
+                    </section>
+                )}
 
-                {/* TÁBLÁZAT */}
+                {/* Táblázat */}
                 <div className="table-wrapper">
                     <table>
                         <thead>
                             <tr>
                                 <th>Név</th>
                                 <th>Nemzetiség</th>
-                                <th>Művelet</th>
+                                {user && <th>Művelet</th>}
                             </tr>
                         </thead>
                         <tbody>
-                            {pilots.map(p => (
-                                <tr key={p.id}>
-                                    <td>{p.name}</td>
-                                    <td>{p.nationality}</td>
-                                    <td>
-                                        <button onClick={() => handleDelete(p.id)} className="button small">Törlés</button>
-                                    </td>
+                            {pilots.length > 0 ? (
+                                pilots.map(p => (
+                                    <tr key={p.id}>
+                                        <td>{p.name}</td>
+                                        <td>{p.nationality}</td>
+                                        {user && (
+                                            <td>
+                                                <button onClick={() => handleDelete(p.id)} className="button small">
+                                                    Törlés
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={user ? 3 : 2} style={{ textAlign: 'center' }}>Nincs adat</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
