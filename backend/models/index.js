@@ -1,33 +1,84 @@
 const sequelize = require('../config/database');
-const Pilot = require('./Pilot');
-const GrandPrix = require('./GrandPrix');
-const Result = require('./Result');
+
 const User = require('./User');
-const ContactMessage = require('./ContactMessage');
+const CustomerProfile = require('./CustomerProfile');
 const Booking = require('./Booking');
+const Driver = require('./Driver');
+const Constructor = require('./Constructor');
+const DriverStanding = require('./DriverStanding');
+const ConstructorStanding = require('./ConstructorStanding');
+const NewsArticle = require('./NewsArticle');
 
-// --- KAPCSOLATOK (Associations) ---
+// User -> CustomerProfile
+User.hasOne(CustomerProfile, {
+  foreignKey: 'user_id',
+  as: 'profile',
+  onDelete: 'CASCADE',
+});
 
-// Egy felhasználónak sok foglalása lehet
-User.hasMany(Booking, { foreignKey: 'user_id' });
-Booking.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+CustomerProfile.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user',
+});
 
-// Egy eredmény egy pilótához tartozik
-Result.belongsTo(Pilot, { foreignKey: 'pilot_id', as: 'pilot' });
-Pilot.hasMany(Result, { foreignKey: 'pilot_id' });
+// User -> Booking
+User.hasMany(Booking, {
+  foreignKey: 'user_id',
+  as: 'bookings',
+  onDelete: 'CASCADE',
+});
 
-// Egy eredmény egy futamhoz tartozik
-Result.belongsTo(GrandPrix, { foreignKey: 'race_id', as: 'race' });
-GrandPrix.hasMany(Result, { foreignKey: 'race_id' });
+Booking.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user',
+});
+
+// Driver -> DriverStanding
+Driver.hasMany(DriverStanding, {
+  foreignKey: 'driver_id',
+  as: 'standings',
+  onDelete: 'CASCADE',
+});
+
+DriverStanding.belongsTo(Driver, {
+  foreignKey: 'driver_id',
+  as: 'driver',
+});
+
+// Constructor -> DriverStanding
+Constructor.hasMany(DriverStanding, {
+  foreignKey: 'constructor_id',
+  as: 'driver_standings',
+  onDelete: 'SET NULL',
+});
+
+DriverStanding.belongsTo(Constructor, {
+  foreignKey: 'constructor_id',
+  as: 'constructor',
+});
+
+// Constructor -> ConstructorStanding
+Constructor.hasMany(ConstructorStanding, {
+  foreignKey: 'constructor_id',
+  as: 'constructor_standings',
+  onDelete: 'CASCADE',
+});
+
+ConstructorStanding.belongsTo(Constructor, {
+  foreignKey: 'constructor_id',
+  as: 'constructor',
+});
 
 const db = {
-    sequelize,
-    Pilot,
-    GrandPrix,
-    Result,
-    User,
-    ContactMessage,
-    Booking
+  sequelize,
+  User,
+  CustomerProfile,
+  Booking,
+  Driver,
+  Constructor,
+  DriverStanding,
+  ConstructorStanding,
+  NewsArticle,
 };
 
 module.exports = db;
