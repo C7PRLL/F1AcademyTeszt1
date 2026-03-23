@@ -24,8 +24,6 @@ function Register() {
                     <h2>Regisztráció</h2>
                     <p>Csatlakozz az F1 Akadémia közösségéhez!</p>
                 </header>
-
-                {/* Letisztult üveg-doboz, fix szélességgel középen */}
                 <section className="glass-box" style={{ maxWidth: '600px', margin: '0 auto', padding: '2em' }}>
                     <form onSubmit={handleSubmit}>
                         <label>Teljes név</label>
@@ -54,8 +52,6 @@ function Register() {
                             onChange={(e) => setFormData({...formData, password: e.target.value})} 
                             required 
                         />
-
-                        {/* A gomb az App.css miatt már magától középen lesz */}
                         <button type="submit" className="button primary">
                             Fiók létrehozása
                         </button>

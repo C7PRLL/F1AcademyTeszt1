@@ -30,8 +30,6 @@ function Login() {
                     <h2>Bejelentkezés</h2>
                     <p>Lépj be a fiókodba a kezelőfelület eléréséhez.</p>
                 </header>
-
-                {/* Letisztult üveg-doboz, fix szélességgel középen */}
                 <section className="glass-box" style={{ maxWidth: '500px', margin: '0 auto', padding: '2em' }}>
                     <form onSubmit={handleSubmit}>
                         <label>E-mail cím</label>
@@ -51,8 +49,6 @@ function Login() {
                             onChange={(e) => setFormData({...formData, password: e.target.value})} 
                             required 
                         />
-
-                        {/* A gomb az App.css miatt már magától középen lesz és sleek */}
                         <button type="submit" className="button primary">
                             Bejelentkezés
                         </button>

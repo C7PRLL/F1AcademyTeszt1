@@ -94,8 +94,6 @@ function Profile() {
                                 accept="image/*"
                                 onChange={(e) => setImage(e.target.files[0])} 
                             />
-
-                            {/* Az App.css .button osztálya miatt ez már magától középen lesz és sleek */}
                             <button type="submit" className="button primary">
                                 Mentés
                             </button>

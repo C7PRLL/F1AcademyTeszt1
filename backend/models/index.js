@@ -4,12 +4,11 @@ const GrandPrix = require('./GrandPrix');
 const Result = require('./Result');
 const User = require('./User');
 const ContactMessage = require('./ContactMessage');
-const Booking = require('./Booking'); // <--- Ellenőrizd, hogy ez a sor pontosan így ott van-e!
+const Booking = require('./Booking');
 
 // --- KAPCSOLATOK (Associations) ---
 
 // Egy felhasználónak sok foglalása lehet
-// Ez a 13. sor környéke, itt volt a hiba:
 User.hasMany(Booking, { foreignKey: 'user_id' });
 Booking.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 

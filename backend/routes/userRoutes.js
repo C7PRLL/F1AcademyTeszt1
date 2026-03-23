@@ -13,12 +13,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 2. REGISZTRÁCIÓ (Biztonságos jelszóval)
+// 2. REGISZTRÁCIÓ 
 router.post('/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
         
-        // Jelszó titkosítása (10-es erősséggel)
+        // Jelszó titkosítása 
         const hashedPassword = await bcrypt.hash(password, 10);
         
         const newUser = await User.create({ 
@@ -33,7 +33,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// 3. BEJELENTKEZÉS (Titkosított jelszó ellenőrzéssel)
+// 3. BEJELENTKEZÉS 
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
             return res.status(404).json({ error: "Felhasználó nem található!" });
         }
 
-        // Itt történik a mágia: összehasonlítjuk a sima jelszót a titkosítottal
+        // a sima jelszó összehasonlítva a titkosítottal
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
@@ -69,7 +69,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// 5. Profil frissítése (Képpel együtt)
+// 5. Profil frissítése 
 router.put('/update/:id', upload.single('image'), async (req, res) => {
     try {
         const { bio, favorite_team, favorite_pilot } = req.body;

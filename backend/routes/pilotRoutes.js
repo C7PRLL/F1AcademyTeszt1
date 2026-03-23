@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
             nationality, 
             birth_date, 
             gender, 
-            is_active: is_active ?? true // Ha nem küldünk státuszt, alapból aktív
+            is_active: is_active ?? true 
         });
         res.status(201).json(newPilot);
     } catch (err) {

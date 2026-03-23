@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 function Track() {
     return (
         <div id="main" className="wrapper">
-            {/* A "narrow" osztály segít a tartalom középre húzásában */}
             <div className="container narrow">
                 
                 <header className="major">
@@ -11,7 +10,7 @@ function Track() {
                     <p>Száguldás és technika az F1 Academy aszfaltján</p>
                 </header>
 
-                {/* 1. BLOKK - A PÁLYA */}
+                {/* A PÁLYA */}
                 <section className="track-block">
                     <p>
                         <strong>A 8 méter széles pálya hossza 1070 méter,</strong> amely paraméterek lehetővé teszik 
@@ -23,7 +22,7 @@ function Track() {
                     </div>
                 </section>
 
-                {/* 2. BLOKK - PITLANE */}
+                {/* PITLANE */}
                 <section className="track-block">
                     <h3>Boxutca és szerviz</h3>
                     <p>
@@ -35,7 +34,7 @@ function Track() {
                     </div>
                 </section>
 
-                {/* 3. BLOKK - TELEMETRIA */}
+                {/*TELEMETRIA */}
                 <section className="track-block">
                     <h3>Profi időmérés és telemetria</h3>
                     <p>
@@ -47,7 +46,7 @@ function Track() {
                     </div>
                 </section>
 
-                {/* 4. BLOKK - BÜFÉ */}
+                {/*  BÜFÉ */}
                 <section className="track-block">
                     <h3>Pihenés a futamok után</h3>
                     <p>

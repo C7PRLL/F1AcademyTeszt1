@@ -23,7 +23,7 @@ function App() {
           <Route path="/booking" element={<Booking />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/track" element={<Track />} />
-          {/* Később ide jöhet majd a: <Route path="/diagrams" element={<Diagrams />} /> */}
+          
         </Routes>
       </div>
     </Router>

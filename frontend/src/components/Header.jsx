@@ -20,7 +20,7 @@ function Header() {
           <li><Link to="/diagrams">Statisztikák</Link></li>
           <li><Link to="/track">A Pálya</Link></li>
 
-          {/* Kondicionális renderelés- Ha be van lépve a felhaszn. */}
+         /* login esetén*/
           {user ? (
             <>
               <li><Link to="/booking">Időpontfoglalás</Link></li>
