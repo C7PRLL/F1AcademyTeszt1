@@ -21,8 +21,6 @@ function Header() {
           <li><Link to="/news">Hírek</Link></li>
           <li><Link to="/diagrams">Statisztikák</Link></li>
           <li><Link to="/track">A Pálya</Link></li>
-
-         /* login esetén*/
           {user ? (
             <>
               <li><Link to="/booking">Időpontfoglalás</Link></li>
