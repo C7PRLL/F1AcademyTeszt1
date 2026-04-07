@@ -1,63 +1,20 @@
 const express = require('express');
-const {
-  syncDrivers,
-  syncCurrentDriverStandings,
-  syncCurrentConstructorStandings,
-  fullF1Sync,
-} = require('../services/f1SyncService');
-const { syncF1News } = require('../services/newsSyncService');
+const { NewsArticle } = require('../models');
 
 const router = express.Router();
 
-router.post('/drivers', async (req, res) => {
+// Hírek listázása: legfrissebb elöl
+router.get('/', async (req, res) => {
   try {
-    const result = await syncDrivers();
-    res.json(result);
-  } catch (error) {
-    console.error('Driver sync hiba:', error);
-    res.status(500).json({ error: 'Driver sync hiba.' });
-  }
-});
-
-router.post('/standings', async (req, res) => {
-  try {
-    const driverResult = await syncCurrentDriverStandings();
-    const constructorResult = await syncCurrentConstructorStandings();
-
-    res.json({
-      success: true,
-      driverStandings: driverResult,
-      constructorStandings: constructorResult,
+    const news = await NewsArticle.findAll({
+      where: { is_active: true },
+      order: [['published_at', 'DESC'], ['id', 'DESC']],
     });
-  } catch (error) {
-    console.error('Standings sync hiba:', error);
-    res.status(500).json({ error: 'Standings sync hiba.' });
-  }
-});
 
-router.post('/news', async (req, res) => {
-  try {
-    const result = await syncF1News();
-    res.json(result);
+    res.json(news);
   } catch (error) {
-    console.error('News sync hiba:', error);
-    res.status(500).json({ error: 'News sync hiba.' });
-  }
-});
-
-router.post('/all', async (req, res) => {
-  try {
-    const f1Result = await fullF1Sync();
-    const newsResult = await syncF1News();
-
-    res.json({
-      success: true,
-      f1: f1Result,
-      news: newsResult,
-    });
-  } catch (error) {
-    console.error('Full sync hiba:', error);
-    res.status(500).json({ error: 'Full sync hiba.' });
+    console.error('Hiba a hírek lekérésekor:', error);
+    res.status(500).json({ error: 'Nem sikerült lekérni a híreket.' });
   }
 });
 
