@@ -40,8 +40,11 @@ router.post('/news', async (req, res) => {
     const result = await syncF1News();
     res.json(result);
   } catch (error) {
-    console.error('News sync hiba:', error);
-    res.status(500).json({ error: 'News sync hiba.' });
+    console.error('News sync hiba:', error.response?.data || error.message || error);
+    res.status(500).json({
+      error: 'News sync hiba.',
+      details: error.response?.data || error.message || 'Ismeretlen hiba',
+    });
   }
 });
 
