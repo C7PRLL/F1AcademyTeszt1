@@ -20,7 +20,6 @@ function Profile() {
     confirmNewPassword: '',
   });
 
-  // 1. Felhasználói adatok betöltése
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -31,7 +30,10 @@ function Profile() {
           return;
         }
 
-        const res = await axios.get(`http://localhost:5000/api/users/${storedUser.id}`);
+        const res = await axios.get(
+          `http://localhost:5000/api/users/${storedUser.id}`,
+          { withCredentials: true }
+        );
 
         if (res.data) {
           setUser(res.data);
@@ -51,10 +53,8 @@ function Profile() {
     fetchUser();
   }, []);
 
-  // 2. Profil frissítése
   const handleUpdate = async (e) => {
     e.preventDefault();
-
     if (!user) return;
 
     const data = new FormData();
@@ -71,7 +71,10 @@ function Profile() {
         `http://localhost:5000/api/users/update/${user.id}`,
         data,
         {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          withCredentials: true,
         }
       );
 
@@ -84,10 +87,8 @@ function Profile() {
     }
   };
 
-  // 3. Jelszó módosítás profilból
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-
     if (!user) return;
 
     if (
@@ -105,12 +106,22 @@ function Profile() {
     }
 
     try {
-      await axios.put(`http://localhost:5000/api/users/change-password/${user.id}`, {
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
-      });
+      const res = await axios.post(
+        'http://localhost:5000/api/users/change-password',
+        {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+          confirmNewPassword: passwordData.confirmNewPassword,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
-      alert('A jelszó sikeresen módosult. Kérlek, jelentkezz be újra.');
+      alert(
+        res.data?.message ||
+          'A jelszó sikeresen módosult. Kérlek, jelentkezz be újra.'
+      );
 
       localStorage.removeItem('user');
       navigate('/login');
@@ -118,183 +129,335 @@ function Profile() {
       console.error('Jelszó módosítási hiba:', error);
 
       const message =
-        error?.response?.data?.message || 'Hiba történt a jelszó módosítása során.';
+        error?.response?.data?.error ||
+        'Hiba történt a jelszó módosítása során.';
+
       alert(message);
     }
   };
 
-  // 4. Kijelentkezés
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        'http://localhost:5000/api/users/logout',
+        {},
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error('Kijelentkezési hiba:', error);
+    } finally {
+      localStorage.removeItem('user');
+      navigate('/login');
+    }
   };
 
   if (loading) {
     return (
-      <div className="wrapper">
-        <div className="container">
-          <p>Betöltés...</p>
-        </div>
+      <div style={{ padding: '40px', color: '#fff' }}>
+        Betöltés...
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="wrapper">
-        <div className="container">
-          <section
-            className="glass-box"
-            style={{ maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}
-          >
-            <h2>Profil</h2>
-            <p>Nincs bejelentkezve.</p>
-            <button
-              className="button primary"
-              onClick={() => navigate('/login')}
-            >
-              Ugrás a belépéshez
-            </button>
-          </section>
-        </div>
+      <div style={{ padding: '40px', color: '#fff' }}>
+        <h2>Profil</h2>
+        <p>Nincs bejelentkezve.</p>
+        <button onClick={() => navigate('/login')}>Ugrás a belépéshez</button>
       </div>
     );
   }
 
   return (
-    <div className="wrapper">
-      <div className="container">
-        <header className="major">
-          <h2>Saját Profil</h2>
-          <p>Kezeld az adataidat és a megjelenésedet</p>
-        </header>
-
-        <div className="glass-box" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '3em',
-              justifyContent: 'center',
-            }}
-          >
-            {/* BAL OLDAL: Kép és Név */}
-            <div style={{ textAlign: 'center', minWidth: '250px' }}>
-              <div className="profile-pic-wrapper">
-                <img
-                  src={
-                    user.profile_image
-                      ? `http://localhost:5000/uploads/${user.profile_image}`
-                      : 'https://via.placeholder.com/200?text=Nincs+kép'
-                  }
-                  alt="Profil"
-                />
-              </div>
-
-              <h3 style={{ color: '#fff', marginBottom: '0.5em' }}>{user.name}</h3>
-              <p style={{ opacity: 0.5 }}>{user.email}</p>
-
-              <button
-                className="button small"
-                onClick={handleLogout}
-                style={{ marginTop: '1em', minWidth: '150px' }}
+    <div
+      style={{
+        minHeight: '100vh',
+        padding: '40px 20px',
+        background:
+          'linear-gradient(180deg, rgba(10,10,10,1) 0%, rgba(24,24,24,1) 100%)',
+        color: '#fff',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '1100px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '320px 1fr',
+          gap: '24px',
+        }}
+      >
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '20px',
+            padding: '24px',
+            height: 'fit-content',
+          }}
+        >
+          <div style={{ textAlign: 'center' }}>
+            {user.profile_image ? (
+              <img
+                src={`http://localhost:5000/uploads/${user.profile_image}`}
+                alt="Profilkép"
+                style={{
+                  width: '140px',
+                  height: '140px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  marginBottom: '16px',
+                  border: '3px solid rgba(255,255,255,0.12)',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '140px',
+                  height: '140px',
+                  borderRadius: '50%',
+                  margin: '0 auto 16px auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(255,255,255,0.08)',
+                  fontSize: '42px',
+                  fontWeight: 'bold',
+                }}
               >
-                Kijelentkezés
-              </button>
-            </div>
+                {user.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+            )}
 
-            {/* JOBB OLDAL: Profil szerkesztés + jelszó módosítás */}
-            <div style={{ flex: '1', minWidth: '300px' }}>
-              <form onSubmit={handleUpdate}>
-                <label>Rólam (Bio)</label>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) =>
-                    setFormData({ ...formData, bio: e.target.value })
-                  }
-                  placeholder="Írj magadról pár szót..."
-                  rows="3"
-                />
+            <h3 style={{ marginBottom: '8px' }}>{user.name}</h3>
+            <p style={{ opacity: 0.8, marginBottom: '20px' }}>{user.email}</p>
 
-                <label>Kedvenc Csapat</label>
-                <input
-                  type="text"
-                  value={formData.favorite_team}
-                  onChange={(e) =>
-                    setFormData({ ...formData, favorite_team: e.target.value })
-                  }
-                />
-
-                <label>Kedvenc Versenyző</label>
-                <input
-                  type="text"
-                  value={formData.favorite_pilot}
-                  onChange={(e) =>
-                    setFormData({ ...formData, favorite_pilot: e.target.value })
-                  }
-                />
-
-                <label>Profilkép módosítása</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImage(e.target.files[0])}
-                />
-
-                <button type="submit" className="button primary">
-                  Változtatások mentése
-                </button>
-              </form>
-
-              <hr style={{ margin: '2em 0', opacity: 0.3 }} />
-
-              <form onSubmit={handlePasswordChange}>
-                <h3 style={{ color: '#fff', marginBottom: '1em' }}>
-                  Jelszó módosítása
-                </h3>
-
-                <label>Jelenlegi jelszó</label>
-                <input
-                  type="password"
-                  value={passwordData.currentPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      currentPassword: e.target.value,
-                    })
-                  }
-                />
-
-                <label>Új jelszó</label>
-                <input
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      newPassword: e.target.value,
-                    })
-                  }
-                />
-
-                <label>Új jelszó megerősítése</label>
-                <input
-                  type="password"
-                  value={passwordData.confirmNewPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      confirmNewPassword: e.target.value,
-                    })
-                  }
-                />
-
-                <button type="submit" className="button primary">
-                  Jelszó módosítása
-                </button>
-              </form>
-            </div>
+            <button
+              onClick={handleLogout}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Kijelentkezés
+            </button>
           </div>
+        </div>
+
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '20px',
+            padding: '24px',
+          }}
+        >
+          <h2 style={{ marginBottom: '8px' }}>Saját Profil</h2>
+          <p style={{ opacity: 0.8, marginBottom: '24px' }}>
+            Kezeld az adataidat és a megjelenésedet
+          </p>
+
+          <form onSubmit={handleUpdate}>
+            <h3 style={{ marginBottom: '16px' }}>Profil szerkesztése</h3>
+
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Rólam (Bio)
+            </label>
+            <textarea
+              value={formData.bio}
+              onChange={(e) =>
+                setFormData({ ...formData, bio: e.target.value })
+              }
+              placeholder="Írj magadról pár szót..."
+              rows="4"
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#ffffff',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                marginBottom: '16px',
+                resize: 'vertical',
+              }}
+            />
+
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Kedvenc Csapat
+            </label>
+            <input
+              type="text"
+              value={formData.favorite_team}
+              onChange={(e) =>
+                setFormData({ ...formData, favorite_team: e.target.value })
+              }
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#ffffff',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                marginBottom: '16px',
+              }}
+            />
+
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Kedvenc Versenyző
+            </label>
+            <input
+              type="text"
+              value={formData.favorite_pilot}
+              onChange={(e) =>
+                setFormData({ ...formData, favorite_pilot: e.target.value })
+              }
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#ffffff',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                marginBottom: '16px',
+              }}
+            />
+
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Profilkép módosítása
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files[0])}
+              style={{ marginBottom: '20px', color: '#fff' }}
+            />
+
+            <button
+              type="submit"
+              className="button primary"
+              style={{
+                padding: '12px 18px',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Változtatások mentése
+            </button>
+          </form>
+
+          <hr style={{ margin: '32px 0', opacity: 0.3 }} />
+
+          <form onSubmit={handlePasswordChange}>
+            <h3 style={{ marginBottom: '16px' }}>Jelszó módosítása</h3>
+
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Jelenlegi jelszó
+            </label>
+            <input
+              type="password"
+              value={passwordData.currentPassword}
+              onChange={(e) =>
+                setPasswordData({
+                  ...passwordData,
+                  currentPassword: e.target.value,
+                })
+              }
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#ffffff',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                marginBottom: '16px',
+              }}
+            />
+
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Új jelszó
+            </label>
+            <input
+              type="password"
+              value={passwordData.newPassword}
+              onChange={(e) =>
+                setPasswordData({
+                  ...passwordData,
+                  newPassword: e.target.value,
+                })
+              }
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#ffffff',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                marginBottom: '16px',
+              }}
+            />
+
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Új jelszó megerősítése
+            </label>
+            <input
+              type="password"
+              value={passwordData.confirmNewPassword}
+              onChange={(e) =>
+                setPasswordData({
+                  ...passwordData,
+                  confirmNewPassword: e.target.value,
+                })
+              }
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.12)',
+                background: 'rgba(255,255,255,0.06)',
+                color: '#ffffff',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                marginBottom: '20px',
+              }}
+            />
+
+            <button
+              type="submit"
+              className="button primary"
+              style={{
+                padding: '12px 18px',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              Jelszó módosítása
+            </button>
+          </form>
         </div>
       </div>
     </div>

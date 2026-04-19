@@ -5,7 +5,6 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-
 const {
   sendVerificationEmail,
   sendAdminRegistrationEmail,
@@ -35,9 +34,7 @@ router.post('/register', async (req, res) => {
     const existing = await User.findOne({ where: { email } });
 
     if (existing) {
-      return res.status(400).json({
-        error: 'Az email cím már foglalt!',
-      });
+      return res.status(400).json({ error: 'Az email cím már foglalt!' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -53,12 +50,7 @@ router.post('/register', async (req, res) => {
       verification_expires_at: verificationExpiresAt,
     });
 
-    await sendVerificationEmail(
-      newUser.email,
-      newUser.name,
-      verificationToken
-    );
-
+    await sendVerificationEmail(newUser.email, newUser.name, verificationToken);
     await sendAdminRegistrationEmail(newUser, verificationToken);
 
     return res.status(201).json({
@@ -83,9 +75,7 @@ router.get('/activate-account', async (req, res) => {
     const { token } = req.query;
 
     if (!token) {
-      return res.status(400).json({
-        error: 'Hiányzó token.',
-      });
+      return res.status(400).json({ error: 'Hiányzó token.' });
     }
 
     const user = await User.findOne({
@@ -96,18 +86,16 @@ router.get('/activate-account', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({
-        error: 'Érvénytelen vagy már felhasznált token.',
-      });
+      return res
+        .status(404)
+        .json({ error: 'Érvénytelen vagy már felhasznált token.' });
     }
 
     if (
       !user.verification_expires_at ||
       user.verification_expires_at < new Date()
     ) {
-      return res.status(400).json({
-        error: 'A token lejárt.',
-      });
+      return res.status(400).json({ error: 'A token lejárt.' });
     }
 
     user.is_verified = true;
@@ -151,8 +139,8 @@ router.post('/forgot-password', async (req, res) => {
 
     user.password_reset_token = resetToken;
     user.password_reset_expires_at = resetExpiresAt;
-    await user.save();
 
+    await user.save();
     await sendPasswordResetEmail(user.email, user.name, resetToken);
 
     return res.status(200).json({
@@ -171,30 +159,22 @@ router.get('/validate-reset-token', async (req, res) => {
     const { token } = req.query;
 
     if (!token) {
-      return res.status(400).json({
-        error: 'Hiányzó token.',
-      });
+      return res.status(400).json({ error: 'Hiányzó token.' });
     }
 
     const user = await User.findOne({
-      where: {
-        password_reset_token: token,
-      },
+      where: { password_reset_token: token },
     });
 
     if (!user) {
-      return res.status(404).json({
-        error: 'Érvénytelen token.',
-      });
+      return res.status(404).json({ error: 'Érvénytelen token.' });
     }
 
     if (
       !user.password_reset_expires_at ||
       user.password_reset_expires_at < new Date()
     ) {
-      return res.status(400).json({
-        error: 'A token lejárt.',
-      });
+      return res.status(400).json({ error: 'A token lejárt.' });
     }
 
     return res.status(200).json({
@@ -214,35 +194,28 @@ router.post('/reset-password', async (req, res) => {
 
     if (!token || !password || !confirmPassword) {
       return res.status(400).json({
-        error: 'A token, az új jelszó és a megerősítés megadása kötelező.',
+        error:
+          'A token, az új jelszó és a megerősítés megadása kötelező.',
       });
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({
-        error: 'A két jelszó nem egyezik.',
-      });
+      return res.status(400).json({ error: 'A két jelszó nem egyezik.' });
     }
 
     const user = await User.findOne({
-      where: {
-        password_reset_token: token,
-      },
+      where: { password_reset_token: token },
     });
 
     if (!user) {
-      return res.status(404).json({
-        error: 'Érvénytelen token.',
-      });
+      return res.status(404).json({ error: 'Érvénytelen token.' });
     }
 
     if (
       !user.password_reset_expires_at ||
       user.password_reset_expires_at < new Date()
     ) {
-      return res.status(400).json({
-        error: 'A token lejárt.',
-      });
+      return res.status(400).json({ error: 'A token lejárt.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -262,9 +235,8 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-// PROFILBÓL JELSZÓ MÓDOSÍTÁS EMAIL NÉLKÜL
-// Bejelentkezett userhez tartozó változtatás
-router.post('/change-password', async (req, res) => {
+// PROFILBÓL JELSZÓ MÓDOSÍTÁS
+const handleChangePassword = async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -272,17 +244,18 @@ router.post('/change-password', async (req, res) => {
       });
     }
 
-    const { password, confirmPassword } = req.body;
+    const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
-    if (!password || !confirmPassword) {
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
       return res.status(400).json({
-        error: 'Az új jelszó és a megerősítés megadása kötelező.',
+        error:
+          'A jelenlegi jelszó, az új jelszó és a megerősítés megadása kötelező.',
       });
     }
 
-    if (password !== confirmPassword) {
+    if (newPassword !== confirmNewPassword) {
       return res.status(400).json({
-        error: 'A két jelszó nem egyezik.',
+        error: 'A két új jelszó nem egyezik.',
       });
     }
 
@@ -294,7 +267,33 @@ router.post('/change-password', async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!user.password) {
+      return res.status(400).json({
+        error:
+          'Ehhez a fiókhoz nem tartozik jelszó. Social login esetén nem módosítható így.',
+      });
+    }
+
+    const isCurrentPasswordCorrect = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isCurrentPasswordCorrect) {
+      return res.status(401).json({
+        error: 'A jelenlegi jelszó hibás.',
+      });
+    }
+
+    const isSameAsOld = await bcrypt.compare(newPassword, user.password);
+
+    if (isSameAsOld) {
+      return res.status(400).json({
+        error: 'Az új jelszó nem lehet ugyanaz, mint a jelenlegi.',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     user.password = hashedPassword;
     user.password_reset_token = null;
@@ -302,15 +301,40 @@ router.post('/change-password', async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({
-      message:
-        'A jelszó sikeresen módosítva lett. Kérlek, jelentkezz be újra.',
+    req.logout((logoutErr) => {
+      if (logoutErr) {
+        console.error('LOGOUT HIBA JELSZÓMÓDOSÍTÁS UTÁN:', logoutErr);
+        return res.status(500).json({
+          error:
+            'A jelszó módosult, de a kijelentkeztetés nem sikerült.',
+        });
+      }
+
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error('SESSION TÖRLÉSI HIBA JELSZÓMÓDOSÍTÁS UTÁN:', sessionErr);
+          return res.status(500).json({
+            error:
+              'A jelszó módosult, de a session törlése nem sikerült.',
+          });
+        }
+
+        res.clearCookie('connect.sid');
+
+        return res.status(200).json({
+          message: 'A jelszó sikeresen módosítva lett. Kérlek, jelentkezz be újra.',
+        });
+      });
     });
   } catch (err) {
     console.error('CHANGE PASSWORD HIBA:', err);
     return res.status(500).json({ error: err.message });
   }
-});
+};
+
+// támogatjuk a régi és az új hívási formát is
+router.post('/change-password', handleChangePassword);
+router.put('/change-password/:id', handleChangePassword);
 
 // BEJELENTKEZÉS + SESSION
 router.post('/login', async (req, res) => {
@@ -320,9 +344,7 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(404).json({
-        error: 'Felhasználó nem található!',
-      });
+      return res.status(404).json({ error: 'Felhasználó nem található!' });
     }
 
     if (!user.password) {
@@ -333,16 +355,14 @@ router.post('/login', async (req, res) => {
 
     if (!user.is_verified) {
       return res.status(403).json({
-        error: 'A fiók még nincs aktiválva. Ellenőrizd az emailedet.',
+        error: 'A fiók még nincs aktiválva.\nEllenőrizd az emailedet.',
       });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({
-        error: 'Hibás jelszó!',
-      });
+      return res.status(401).json({ error: 'Hibás jelszó!' });
     }
 
     req.login(user, (loginErr) => {
@@ -385,6 +405,7 @@ router.post('/logout', (req, res) => {
       }
 
       res.clearCookie('connect.sid');
+
       return res.status(200).json({ message: 'Sikeres kijelentkezés.' });
     });
   });
@@ -396,9 +417,7 @@ router.get('/:id', async (req, res) => {
     const user = await User.findByPk(req.params.id);
 
     if (!user) {
-      return res.status(404).json({
-        error: 'Felhasználó nem található.',
-      });
+      return res.status(404).json({ error: 'Felhasználó nem található.' });
     }
 
     return res.json(user);
