@@ -35,7 +35,7 @@ function Header() {
           <li><Link to="/pilots">Pilóták</Link></li>
           <li><Link to="/standings">Tabella</Link></li>
           <li><Link to="/news">Hírek</Link></li>
-          <li><Link to="/diagrams">Statisztikák</Link></li>
+          <li><Link to="/statistics">Statisztikák</Link></li>
           <li><Link to="/track">A Pálya</Link></li>
 
           {user ? (

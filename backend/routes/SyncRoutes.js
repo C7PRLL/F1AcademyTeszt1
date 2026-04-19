@@ -3,6 +3,7 @@ const {
   syncDrivers,
   syncCurrentDriverStandings,
   syncCurrentConstructorStandings,
+  syncCurrentDriversSeasonPoints,
   fullF1Sync,
 } = require('../services/f1SyncService');
 const { syncF1News } = require('../services/newsSyncService');
@@ -32,6 +33,17 @@ router.post('/standings', async (req, res) => {
   } catch (error) {
     console.error('Standings sync hiba:', error);
     res.status(500).json({ error: 'Standings sync hiba.' });
+  }
+});
+
+router.post('/season-points', async (req, res) => {
+  try {
+    await syncCurrentDriverStandings();
+    const result = await syncCurrentDriversSeasonPoints();
+    res.json(result);
+  } catch (error) {
+    console.error('Season points sync hiba:', error);
+    res.status(500).json({ error: 'Season points sync hiba.' });
   }
 });
 

@@ -7,6 +7,7 @@ import Loader from './components/Loader';
 import Home from './pages/Home';
 import Pilots from './pages/Pilots';
 import Standings from './pages/Standings';
+import Statistics from './pages/Statistics';
 import News from './pages/News';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -43,6 +44,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/pilots" element={<Pilots />} />
           <Route path="/standings" element={<Standings />} />
+          <Route path="/statistics" element={<Statistics />} />
           <Route path="/news" element={<News />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />

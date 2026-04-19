@@ -4,9 +4,12 @@ const {
   Constructor,
   DriverStanding,
   ConstructorStanding,
+  DriverSeasonPoint,
 } = require('../models');
 
 const JOLPICA_BASE_URL = 'https://api.jolpi.ca/ergast/f1';
+const SEASON_POINTS_FROM_YEAR = 2020;
+const SEASON_POINTS_TO_YEAR = 2026;
 
 function extractDriverList(responseData) {
   return responseData?.MRData?.DriverTable?.Drivers || [];
@@ -21,9 +24,34 @@ function extractDriverStandingsList(responseData) {
 
 function extractConstructorStandingsList(responseData) {
   return (
-    responseData?.MRData?.StandingsTable?.StandingsLists?.[0]
-      ?.ConstructorStandings || []
+    responseData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ||
+    []
   );
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function getWithRetry(url, maxRetries = 5, baseDelay = 2500) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await axios.get(url);
+    } catch (error) {
+      const status = error?.response?.status;
+
+      if (status === 429 && attempt < maxRetries) {
+        const waitTime = baseDelay * (attempt + 1);
+        console.warn(
+          `429 throttled: ${url} | retry ${attempt + 1}/${maxRetries} | wait ${waitTime}ms`
+        );
+        await sleep(waitTime);
+        continue;
+      }
+
+      throw error;
+    }
+  }
 }
 
 async function syncDrivers() {
@@ -34,7 +62,7 @@ async function syncDrivers() {
 
   while (offset < total) {
     const url = `${JOLPICA_BASE_URL}/drivers.json?limit=${limit}&offset=${offset}`;
-    const response = await axios.get(url);
+    const response = await getWithRetry(url);
     const data = response.data;
 
     const drivers = extractDriverList(data);
@@ -60,9 +88,11 @@ async function syncDrivers() {
       });
 
       processed += 1;
+      await sleep(120);
     }
 
     offset += limit;
+    await sleep(400);
   }
 
   return {
@@ -73,7 +103,7 @@ async function syncDrivers() {
 
 async function syncCurrentDriverStandings() {
   const url = `${JOLPICA_BASE_URL}/current/driverstandings.json`;
-  const response = await axios.get(url);
+  const response = await getWithRetry(url);
   const standings = extractDriverStandingsList(response.data);
 
   if (!standings.length) {
@@ -90,6 +120,8 @@ async function syncCurrentDriverStandings() {
   const round = Number(
     response.data?.MRData?.StandingsTable?.round || 0
   );
+
+  await Driver.update({ is_active: false }, { where: {} });
 
   await DriverStanding.destroy({
     where: {
@@ -156,6 +188,7 @@ async function syncCurrentDriverStandings() {
     });
 
     processed += 1;
+    await sleep(200);
   }
 
   return {
@@ -168,7 +201,7 @@ async function syncCurrentDriverStandings() {
 
 async function syncCurrentConstructorStandings() {
   const url = `${JOLPICA_BASE_URL}/current/constructorstandings.json`;
-  const response = await axios.get(url);
+  const response = await getWithRetry(url);
   const standings = extractConstructorStandingsList(response.data);
 
   if (!standings.length) {
@@ -225,6 +258,7 @@ async function syncCurrentConstructorStandings() {
     });
 
     processed += 1;
+    await sleep(200);
   }
 
   return {
@@ -235,16 +269,95 @@ async function syncCurrentConstructorStandings() {
   };
 }
 
+function getSeasonRange(fromYear = SEASON_POINTS_FROM_YEAR, toYear = SEASON_POINTS_TO_YEAR) {
+  const years = [];
+  for (let year = fromYear; year <= toYear; year += 1) {
+    years.push(year);
+  }
+  return years;
+}
+
+async function syncCurrentDriversSeasonPoints() {
+  const activeDrivers = await Driver.findAll({
+    where: { is_active: true },
+    order: [['full_name', 'ASC']],
+  });
+
+  if (!activeDrivers.length) {
+    return {
+      success: true,
+      processedDrivers: 0,
+      processedSeasons: 0,
+      message: 'Nincs aktív pilóta. Előbb futtasd a standings syncet.',
+    };
+  }
+
+  const activeDriversMap = new Map();
+  for (const driver of activeDrivers) {
+    activeDriversMap.set(driver.external_id, driver);
+  }
+
+  const activeDriverIds = activeDrivers.map((driver) => driver.id);
+
+  await DriverSeasonPoint.destroy({
+    where: {
+      driver_id: activeDriverIds,
+    },
+  });
+
+  const years = getSeasonRange();
+  let processedDrivers = 0;
+  let processedSeasons = 0;
+
+  for (const seasonYear of years) {
+    const url = `${JOLPICA_BASE_URL}/${seasonYear}/driverstandings.json`;
+    const response = await getWithRetry(url);
+    const standings = extractDriverStandingsList(response.data);
+
+    for (const standing of standings) {
+      const externalDriverId = standing?.Driver?.driverId;
+      if (!externalDriverId) continue;
+
+      const localDriver = activeDriversMap.get(externalDriverId);
+      if (!localDriver) continue;
+
+      await DriverSeasonPoint.create({
+        season_year: seasonYear,
+        driver_id: localDriver.id,
+        position: Number(standing.position || 0),
+        points: Number(standing.points || 0),
+        wins: Number(standing.wins || 0),
+        fetched_at: new Date(),
+      });
+
+      processedDrivers += 1;
+    }
+
+    processedSeasons += 1;
+    await sleep(1200);
+  }
+
+  return {
+    success: true,
+    processedDrivers,
+    processedSeasons,
+    fromYear: SEASON_POINTS_FROM_YEAR,
+    toYear: SEASON_POINTS_TO_YEAR,
+  };
+}
+
 async function fullF1Sync() {
   const driversResult = await syncDrivers();
   const driverStandingsResult = await syncCurrentDriverStandings();
   const constructorStandingsResult = await syncCurrentConstructorStandings();
+  const seasonPointsResult = await syncCurrentDriversSeasonPoints();
 
   return {
     success: true,
     drivers: driversResult,
     driverStandings: driverStandingsResult,
     constructorStandings: constructorStandingsResult,
+    seasonPoints: seasonPointsResult,
   };
 }
 
@@ -252,5 +365,6 @@ module.exports = {
   syncDrivers,
   syncCurrentDriverStandings,
   syncCurrentConstructorStandings,
+  syncCurrentDriversSeasonPoints,
   fullF1Sync,
 };

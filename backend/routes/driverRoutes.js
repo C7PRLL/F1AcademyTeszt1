@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const {
   Driver,
   DriverStanding,
+  DriverSeasonPoint,
   Constructor,
   ConstructorStanding,
 } = require('../models');
@@ -73,6 +74,54 @@ router.get('/standings/drivers', async (req, res) => {
   } catch (error) {
     console.error('Hiba a driver standings lekérésekor:', error);
     res.status(500).json({ error: 'Nem sikerült lekérni a pilóta tabellát.' });
+  }
+});
+
+// Aktuális pilóták több éves pontdiagramja
+router.get('/statistics/current-points', async (req, res) => {
+  try {
+    const existingCount = await DriverSeasonPoint.count();
+
+    if (existingCount === 0) {
+      return res.status(409).json({
+        error:
+          'A statisztikai adatok még nincsenek szinkronizálva. Futtasd a /api/sync/season-points végpontot.',
+      });
+    }
+
+    const seasonPoints = await DriverSeasonPoint.findAll({
+      include: [
+        {
+          model: Driver,
+          as: 'driver',
+        },
+      ],
+      order: [
+        ['season_year', 'ASC'],
+        [{ model: Driver, as: 'driver' }, 'full_name', 'ASC'],
+      ],
+    });
+
+    const result = seasonPoints.map((item) => ({
+      id: item.id,
+      season_year: item.season_year,
+      position: item.position,
+      points: item.points,
+      wins: item.wins,
+      driver: item.driver
+        ? {
+            id: item.driver.id,
+            external_id: item.driver.external_id,
+            full_name: item.driver.full_name,
+            code: item.driver.code,
+          }
+        : null,
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Hiba a szezonpontok lekérésekor:', error);
+    res.status(500).json({ error: 'Nem sikerült lekérni a szezonpontokat.' });
   }
 });
 

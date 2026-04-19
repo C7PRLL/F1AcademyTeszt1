@@ -55,7 +55,7 @@ function Home() {
             <div className="feature-box">
               <h3>Statisztikák</h3>
               <p>Látványos statisztikák.</p>
-              <Link to="/diagrams" className="button small">Megtekintés</Link>
+              <Link to="/statistics" className="button small">Megtekintés</Link>
             </div>
             <div className="feature-box">
               <h3>Időpontok</h3>

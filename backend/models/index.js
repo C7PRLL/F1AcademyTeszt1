@@ -7,6 +7,7 @@ const Driver = require('./Driver');
 const Constructor = require('./Constructor');
 const DriverStanding = require('./DriverStanding');
 const ConstructorStanding = require('./ConstructorStanding');
+const DriverSeasonPoint = require('./DriverSeasonPoint');
 const NewsArticle = require('./NewsArticle');
 
 // User -> CustomerProfile
@@ -45,6 +46,18 @@ DriverStanding.belongsTo(Driver, {
   as: 'driver',
 });
 
+// Driver -> DriverSeasonPoint
+Driver.hasMany(DriverSeasonPoint, {
+  foreignKey: 'driver_id',
+  as: 'season_points',
+  onDelete: 'CASCADE',
+});
+
+DriverSeasonPoint.belongsTo(Driver, {
+  foreignKey: 'driver_id',
+  as: 'driver',
+});
+
 // Constructor -> DriverStanding
 Constructor.hasMany(DriverStanding, {
   foreignKey: 'constructor_id',
@@ -78,6 +91,7 @@ const db = {
   Constructor,
   DriverStanding,
   ConstructorStanding,
+  DriverSeasonPoint,
   NewsArticle,
 };
 
