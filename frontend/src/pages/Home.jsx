@@ -33,7 +33,7 @@ function Home() {
             </header>
             <p>Csatlakozz az F1 Akadémiához, és ismerd meg a hősök útját a csúcsig.</p>
             <ul className="actions">
-              <li><Link to="/register" className="button primary">Regisztráció</Link></li>
+              <Link to="/register" className="button primary">Regisztráció</Link>
             </ul>
           </div>
         </div>
