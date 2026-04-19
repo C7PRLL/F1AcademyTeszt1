@@ -25,6 +25,20 @@ const Booking = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    participant_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'pending',
+    },
+    note: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     tableName: 'bookings',
