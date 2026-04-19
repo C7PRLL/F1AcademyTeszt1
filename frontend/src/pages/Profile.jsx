@@ -20,6 +20,11 @@ function Profile() {
     confirmNewPassword: '',
   });
 
+  const [adminMessageData, setAdminMessageData] = useState({
+    subject: '',
+    message: '',
+  });
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -136,24 +141,44 @@ function Profile() {
     }
   };
 
-  const handleLogout = async () => {
+  const handleAdminMessageSend = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (!adminMessageData.subject || !adminMessageData.message) {
+      alert('Kérlek, add meg a tárgyat és az üzenetet is.');
+      return;
+    }
+
     try {
-      await axios.post(
-        'http://localhost:5000/api/users/logout',
-        {},
-        { withCredentials: true }
+      const res = await axios.post(
+        'http://localhost:5000/api/users/contact-admin',
+        {
+          subject: adminMessageData.subject,
+          message: adminMessageData.message,
+        },
+        {
+          withCredentials: true,
+        }
       );
+
+      alert(res.data?.message || 'Az üzenet sikeresen elküldve.');
+      setAdminMessageData({
+        subject: '',
+        message: '',
+      });
     } catch (error) {
-      console.error('Kijelentkezési hiba:', error);
-    } finally {
-      localStorage.removeItem('user');
-      navigate('/login');
+      console.error('Admin üzenetküldési hiba:', error);
+      alert(
+        error?.response?.data?.error ||
+          'Hiba történt az üzenet elküldése során.'
+      );
     }
   };
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', color: '#fff' }}>
+      <div style={{ padding: '140px 40px 40px', color: '#fff' }}>
         Betöltés...
       </div>
     );
@@ -161,7 +186,7 @@ function Profile() {
 
   if (!user) {
     return (
-      <div style={{ padding: '40px', color: '#fff' }}>
+      <div style={{ padding: '140px 40px 40px', color: '#fff' }}>
         <h2>Profil</h2>
         <p>Nincs bejelentkezve.</p>
         <button onClick={() => navigate('/login')}>Ugrás a belépéshez</button>
@@ -173,10 +198,11 @@ function Profile() {
     <div
       style={{
         minHeight: '100vh',
-        padding: '40px 20px',
+        padding: '140px 20px 40px',
         background:
           'linear-gradient(180deg, rgba(10,10,10,1) 0%, rgba(24,24,24,1) 100%)',
         color: '#fff',
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -233,19 +259,72 @@ function Profile() {
             <h3 style={{ marginBottom: '8px' }}>{user.name}</h3>
             <p style={{ opacity: 0.8, marginBottom: '20px' }}>{user.email}</p>
 
-            <button
-              onClick={handleLogout}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: '10px',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-              }}
-            >
-              Kijelentkezés
-            </button>
+            <form onSubmit={handleAdminMessageSend}>
+              <h4 style={{ marginBottom: '12px' }}>Üzenet küldése az adminnak</h4>
+
+              <input
+                type="text"
+                placeholder="Tárgy"
+                value={adminMessageData.subject}
+                onChange={(e) =>
+                  setAdminMessageData({
+                    ...adminMessageData,
+                    subject: e.target.value,
+                  })
+                }
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  marginBottom: '12px',
+                }}
+              />
+
+              <textarea
+                placeholder="Írd ide az üzenetedet..."
+                rows="5"
+                value={adminMessageData.message}
+                onChange={(e) =>
+                  setAdminMessageData({
+                    ...adminMessageData,
+                    message: e.target.value,
+                  })
+                }
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  marginBottom: '14px',
+                  resize: 'vertical',
+                }}
+              />
+
+              <button
+                type="submit"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                Üzenet küldése
+              </button>
+            </form>
           </div>
         </div>
 
@@ -257,7 +336,7 @@ function Profile() {
             padding: '24px',
           }}
         >
-          <h2 style={{ marginBottom: '8px' }}>Saját Profil</h2>
+          <h2 style={{ marginBottom: '8px', marginTop: 0 }}>Saját Profil</h2>
           <p style={{ opacity: 0.8, marginBottom: '24px' }}>
             Kezeld az adataidat és a megjelenésedet
           </p>

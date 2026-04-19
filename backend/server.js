@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 
 const userRoutes = require('./routes/userRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const driverRoutes = require('./routes/driverRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -27,6 +28,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use('/uploads', express.static('uploads'));
 
 // SESSION
@@ -36,7 +38,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false, // localhoston false
+      secure: false,
       httpOnly: true,
       sameSite: 'lax',
     },
@@ -50,6 +52,7 @@ app.use(passport.session());
 // ROUTES
 app.use('/api/users', userRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/drivers', driverRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/auth', authRoutes);
@@ -68,12 +71,11 @@ db.sequelize
   .authenticate()
   .then(() => {
     console.log('Siker: kapcsolódva a MariaDB-hez.');
-    return db.sequelize.sync();
+    return db.sequelize.sync({ alter: true });
   })
   .then(async () => {
     console.log('Adatbázis szinkronizálva.');
 
-    // Alap admin user létrehozása, ha még nem létezik
     const existingAdmin = await User.findOne({
       where: { email: 'admin@admin.com' },
     });

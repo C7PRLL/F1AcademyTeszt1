@@ -17,6 +17,7 @@ import AuthSuccess from './pages/AuthSuccess';
 import ActivateAccountPage from './pages/ActivateAccountPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import AdminData from './pages/AdminData';
 
 import './App.css';
 
@@ -37,6 +38,7 @@ function App() {
 
       <Router>
         <Header />
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/pilots" element={<Pilots />} />
@@ -51,6 +53,7 @@ function App() {
           <Route path="/activate-account" element={<ActivateAccountPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/admin-data" element={<AdminData />} />
         </Routes>
       </Router>
     </>

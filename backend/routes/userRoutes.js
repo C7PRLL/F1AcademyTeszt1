@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const {
   sendVerificationEmail,
   sendAdminRegistrationEmail,
@@ -19,6 +20,16 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 // REGISZTRÁCIÓ
 router.post('/register', async (req, res) => {
@@ -236,7 +247,7 @@ router.post('/reset-password', async (req, res) => {
 });
 
 // PROFILBÓL JELSZÓ MÓDOSÍTÁS
-const handleChangePassword = async (req, res) => {
+router.post('/change-password', async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -267,13 +278,6 @@ const handleChangePassword = async (req, res) => {
       });
     }
 
-    if (!user.password) {
-      return res.status(400).json({
-        error:
-          'Ehhez a fiókhoz nem tartozik jelszó. Social login esetén nem módosítható így.',
-      });
-    }
-
     const isCurrentPasswordCorrect = await bcrypt.compare(
       currentPassword,
       user.password
@@ -285,14 +289,6 @@ const handleChangePassword = async (req, res) => {
       });
     }
 
-    const isSameAsOld = await bcrypt.compare(newPassword, user.password);
-
-    if (isSameAsOld) {
-      return res.status(400).json({
-        error: 'Az új jelszó nem lehet ugyanaz, mint a jelenlegi.',
-      });
-    }
-
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     user.password = hashedPassword;
@@ -301,40 +297,64 @@ const handleChangePassword = async (req, res) => {
 
     await user.save();
 
-    req.logout((logoutErr) => {
-      if (logoutErr) {
-        console.error('LOGOUT HIBA JELSZÓMÓDOSÍTÁS UTÁN:', logoutErr);
-        return res.status(500).json({
-          error:
-            'A jelszó módosult, de a kijelentkeztetés nem sikerült.',
-        });
-      }
-
-      req.session.destroy((sessionErr) => {
-        if (sessionErr) {
-          console.error('SESSION TÖRLÉSI HIBA JELSZÓMÓDOSÍTÁS UTÁN:', sessionErr);
-          return res.status(500).json({
-            error:
-              'A jelszó módosult, de a session törlése nem sikerült.',
-          });
-        }
-
-        res.clearCookie('connect.sid');
-
-        return res.status(200).json({
-          message: 'A jelszó sikeresen módosítva lett. Kérlek, jelentkezz be újra.',
-        });
-      });
+    return res.status(200).json({
+      message: 'A jelszó sikeresen módosítva lett.',
     });
   } catch (err) {
     console.error('CHANGE PASSWORD HIBA:', err);
     return res.status(500).json({ error: err.message });
   }
-};
+});
 
-// támogatjuk a régi és az új hívási formát is
-router.post('/change-password', handleChangePassword);
-router.put('/change-password/:id', handleChangePassword);
+// ÜZENET KÜLDÉSE AZ ADMINNAK
+router.post('/contact-admin', async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: 'Nincs bejelentkezett felhasználó.',
+      });
+    }
+
+    const { subject, message } = req.body;
+
+    if (!subject || !message) {
+      return res.status(400).json({
+        error: 'A tárgy és az üzenet megadása kötelező.',
+      });
+    }
+
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'Felhasználó nem található.',
+      });
+    }
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: process.env.ADMIN_NOTIFY_EMAIL,
+      replyTo: user.email,
+      subject: `[F1 Academy] Üzenet a profil oldalról - ${subject}`,
+      html: `
+        <h2>Új üzenet érkezett a profil oldalról</h2>
+        <p><strong>Név:</strong> ${user.name}</p>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Felhasználó ID:</strong> ${user.id}</p>
+        <p><strong>Tárgy:</strong> ${subject}</p>
+        <p><strong>Üzenet:</strong></p>
+        <div style="white-space: pre-wrap;">${message}</div>
+      `,
+    });
+
+    return res.status(200).json({
+      message: 'Az üzenet sikeresen elküldve az adminnak.',
+    });
+  } catch (err) {
+    console.error('CONTACT ADMIN HIBA:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 // BEJELENTKEZÉS + SESSION
 router.post('/login', async (req, res) => {

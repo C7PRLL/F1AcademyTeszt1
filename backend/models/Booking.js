@@ -13,27 +13,17 @@ const Booking = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    activity_type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     booking_date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    booking_time: {
+    time_slot: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    participant_count: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-    },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'pending',
-    },
-    note: {
-      type: DataTypes.TEXT,
-      allowNull: true,
     },
   },
   {
