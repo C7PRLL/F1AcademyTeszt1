@@ -11,6 +11,9 @@ const newsRoutes = require('./routes/newsRoutes');
 const authRoutes = require('./routes/authRoutes');
 const syncRoutes = require('./routes/SyncRoutes');
 
+// CRON JOB BETÖLTÉSE
+require('./jobs/verificationCleanupJob');
+
 const app = express();
 
 app.use(

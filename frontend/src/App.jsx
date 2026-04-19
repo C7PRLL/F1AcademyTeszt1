@@ -14,6 +14,7 @@ import Booking from './pages/Booking';
 import Profile from './pages/Profile';
 import Track from './pages/Track';
 import AuthSuccess from './pages/AuthSuccess';
+import ActivateAccountPage from './pages/ActivateAccountPage';
 
 import './App.css';
 
@@ -45,6 +46,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/track" element={<Track />} />
           <Route path="/auth-success" element={<AuthSuccess />} />
+          <Route path="/activate-account" element={<ActivateAccountPage />} />
         </Routes>
       </Router>
     </>
