@@ -3,6 +3,7 @@ const cors = require('cors');
 const session = require('express-session');
 const passport = require('./config/passport');
 const db = require('./models');
+const bcrypt = require('bcryptjs');
 
 const userRoutes = require('./routes/userRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
@@ -11,10 +12,11 @@ const newsRoutes = require('./routes/newsRoutes');
 const authRoutes = require('./routes/authRoutes');
 const syncRoutes = require('./routes/SyncRoutes');
 
-// CRON JOB BETÖLTÉSE
+// CRON JOB
 require('./jobs/verificationCleanupJob');
 
 const app = express();
+const { User } = db;
 
 app.use(
   cors({
@@ -68,8 +70,30 @@ db.sequelize
     console.log('Siker: kapcsolódva a MariaDB-hez.');
     return db.sequelize.sync();
   })
-  .then(() => {
+  .then(async () => {
     console.log('Adatbázis szinkronizálva.');
+
+    // Alap admin user létrehozása, ha még nem létezik
+    const existingAdmin = await User.findOne({
+      where: { email: 'admin@admin.com' },
+    });
+
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash('admin', 10);
+
+      await User.create({
+        name: 'admin',
+        email: 'admin@admin.com',
+        password: hashedPassword,
+        is_admin: true,
+        is_verified: true,
+      });
+
+      console.log('✅ Alap admin user létrehozva');
+    } else {
+      console.log('ℹ️ Az admin user már létezik');
+    }
+
     app.listen(PORT, () => {
       console.log(`A szerver fut: http://localhost:${PORT}`);
     });

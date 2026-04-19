@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default function Login() {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -20,7 +18,6 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // 1. Login kérés
       await axios.post(
         'http://localhost:5000/api/users/login',
         {
@@ -32,19 +29,16 @@ export default function Login() {
         }
       );
 
-      // 2. Session ellenőrzése
-      const me = await axios.get('http://localhost:5000/api/auth/me', {
+      const meResponse = await axios.get('http://localhost:5000/api/auth/me', {
         withCredentials: true,
       });
 
-      // 3. User mentése localStorage-ba
-      localStorage.setItem('user', JSON.stringify(me.data));
+      localStorage.setItem('user', JSON.stringify(meResponse.data));
 
       setMessage('Sikeres bejelentkezés!');
 
-      setTimeout(() => {
-        navigate('/');
-      }, 1000);
+      // Teljes reload, hogy minden komponens lássa az új auth állapotot
+      window.location.href = '/';
     } catch (err) {
       setError(
         err.response?.data?.error || 'Hiba történt a bejelentkezés során.'
@@ -52,6 +46,14 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:5000/api/auth/google';
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = 'http://localhost:5000/api/auth/facebook';
   };
 
   return (
@@ -237,6 +239,82 @@ export default function Login() {
             {loading ? 'Bejelentkezés...' : 'Bejelentkezés'}
           </button>
         </form>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            margin: '22px 0 18px 0',
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              height: '1px',
+              background: 'rgba(255,255,255,0.12)',
+            }}
+          />
+          <span
+            style={{
+              color: 'rgba(255,255,255,0.65)',
+              fontSize: '13px',
+            }}
+          >
+            vagy
+          </span>
+          <div
+            style={{
+              flex: 1,
+              height: '1px',
+              background: 'rgba(255,255,255,0.12)',
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: '10px',
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)',
+              color: '#ffffff',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            Bejelentkezés Google-lel
+          </button>
+
+          <button
+            type="button"
+            onClick={handleFacebookLogin}
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: '10px',
+              border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.06)',
+              color: '#ffffff',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            Bejelentkezés Facebookkal
+          </button>
+        </div>
 
         <div
           style={{

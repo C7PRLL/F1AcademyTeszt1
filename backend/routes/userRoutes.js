@@ -22,7 +22,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // REGISZTRÁCIÓ
-// Útvonal: POST /api/users/register
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -79,7 +78,6 @@ router.post('/register', async (req, res) => {
 });
 
 // FIÓK AKTIVÁLÁS
-// Útvonal: GET /api/users/activate-account?token=...
 router.get('/activate-account', async (req, res) => {
   try {
     const { token } = req.query;
@@ -129,7 +127,6 @@ router.get('/activate-account', async (req, res) => {
 });
 
 // ELFELEJTETT JELSZÓ
-// Útvonal: POST /api/users/forgot-password
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -169,7 +166,6 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 // RESET TOKEN ELLENŐRZÉS
-// Útvonal: GET /api/users/validate-reset-token?token=...
 router.get('/validate-reset-token', async (req, res) => {
   try {
     const { token } = req.query;
@@ -211,8 +207,7 @@ router.get('/validate-reset-token', async (req, res) => {
   }
 });
 
-// ÚJ JELSZÓ MENTÉSE
-// Útvonal: POST /api/users/reset-password
+// JELSZÓ RESET TOKENNEL
 router.post('/reset-password', async (req, res) => {
   try {
     const { token, password, confirmPassword } = req.body;
@@ -267,9 +262,58 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// PROFILBÓL JELSZÓ MÓDOSÍTÁS EMAIL NÉLKÜL
+// Bejelentkezett userhez tartozó változtatás
+router.post('/change-password', async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: 'Nincs bejelentkezett felhasználó.',
+      });
+    }
+
+    const { password, confirmPassword } = req.body;
+
+    if (!password || !confirmPassword) {
+      return res.status(400).json({
+        error: 'Az új jelszó és a megerősítés megadása kötelező.',
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        error: 'A két jelszó nem egyezik.',
+      });
+    }
+
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'Felhasználó nem található.',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    user.password_reset_token = null;
+    user.password_reset_expires_at = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      message:
+        'A jelszó sikeresen módosítva lett. Kérlek, jelentkezz be újra.',
+    });
+  } catch (err) {
+    console.error('CHANGE PASSWORD HIBA:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // BEJELENTKEZÉS + SESSION
-// Útvonal: POST /api/users/login
-router.post('/login', async (req, res, next) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -305,7 +349,8 @@ router.post('/login', async (req, res, next) => {
       if (loginErr) {
         console.error('SESSION LOGIN HIBA:', loginErr);
         return res.status(500).json({
-          error: 'Sikeres jelszóellenőrzés történt, de a session létrehozása nem sikerült.',
+          error:
+            'Sikeres jelszóellenőrzés történt, de a session létrehozása nem sikerült.',
         });
       }
 
@@ -328,7 +373,6 @@ router.post('/login', async (req, res, next) => {
 });
 
 // KIJELENTKEZÉS
-// Útvonal: POST /api/users/logout
 router.post('/logout', (req, res) => {
   req.logout((logoutErr) => {
     if (logoutErr) {
@@ -347,7 +391,6 @@ router.post('/logout', (req, res) => {
 });
 
 // Profil adatok lekérése
-// Útvonal: GET /api/users/:id
 router.get('/:id', async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
@@ -365,7 +408,6 @@ router.get('/:id', async (req, res) => {
 });
 
 // Profil frissítése
-// Útvonal: PUT /api/users/update/:id
 router.put('/update/:id', upload.single('image'), async (req, res) => {
   try {
     const { bio, favorite_team, favorite_pilot } = req.body;
