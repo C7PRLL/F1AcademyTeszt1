@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const {
   sendVerificationEmail,
   sendAdminRegistrationEmail,
+  sendPasswordResetEmail,
 } = require('../utils/mailer');
 
 const storage = multer.diskStorage({
@@ -41,11 +42,7 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Minimum 32 hosszú, itt 64 hex karakter lesz
     const verificationToken = crypto.randomBytes(32).toString('hex');
-
-    // 24 órás aktiválási intervallum
     const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const newUser = await User.create({
@@ -57,14 +54,12 @@ router.post('/register', async (req, res) => {
       verification_expires_at: verificationExpiresAt,
     });
 
-    // Email a felhasználónak
     await sendVerificationEmail(
       newUser.email,
       newUser.name,
       verificationToken
     );
 
-    // Email neked / adminnak
     await sendAdminRegistrationEmail(newUser, verificationToken);
 
     return res.status(201).json({
@@ -133,9 +128,148 @@ router.get('/activate-account', async (req, res) => {
   }
 });
 
-// BEJELENTKEZÉS
+// ELFELEJTETT JELSZÓ
+// Útvonal: POST /api/users/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        error: 'Az email megadása kötelező.',
+      });
+    }
+
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(200).json({
+        message:
+          'Ha létezik ilyen email cím a rendszerben, elküldtük a jelszó-visszaállítási linket.',
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    user.password_reset_token = resetToken;
+    user.password_reset_expires_at = resetExpiresAt;
+    await user.save();
+
+    await sendPasswordResetEmail(user.email, user.name, resetToken);
+
+    return res.status(200).json({
+      message:
+        'Ha létezik ilyen email cím a rendszerben, elküldtük a jelszó-visszaállítási linket.',
+    });
+  } catch (err) {
+    console.error('FORGOT PASSWORD HIBA:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// RESET TOKEN ELLENŐRZÉS
+// Útvonal: GET /api/users/validate-reset-token?token=...
+router.get('/validate-reset-token', async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({
+        error: 'Hiányzó token.',
+      });
+    }
+
+    const user = await User.findOne({
+      where: {
+        password_reset_token: token,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'Érvénytelen token.',
+      });
+    }
+
+    if (
+      !user.password_reset_expires_at ||
+      user.password_reset_expires_at < new Date()
+    ) {
+      return res.status(400).json({
+        error: 'A token lejárt.',
+      });
+    }
+
+    return res.status(200).json({
+      message: 'A token érvényes.',
+      valid: true,
+    });
+  } catch (err) {
+    console.error('VALIDATE RESET TOKEN HIBA:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ÚJ JELSZÓ MENTÉSE
+// Útvonal: POST /api/users/reset-password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+
+    if (!token || !password || !confirmPassword) {
+      return res.status(400).json({
+        error: 'A token, az új jelszó és a megerősítés megadása kötelező.',
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        error: 'A két jelszó nem egyezik.',
+      });
+    }
+
+    const user = await User.findOne({
+      where: {
+        password_reset_token: token,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'Érvénytelen token.',
+      });
+    }
+
+    if (
+      !user.password_reset_expires_at ||
+      user.password_reset_expires_at < new Date()
+    ) {
+      return res.status(400).json({
+        error: 'A token lejárt.',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    user.password_reset_token = null;
+    user.password_reset_expires_at = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: 'A jelszó sikeresen módosítva lett.',
+    });
+  } catch (err) {
+    console.error('RESET PASSWORD HIBA:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// BEJELENTKEZÉS + SESSION
 // Útvonal: POST /api/users/login
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -167,20 +301,49 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    return res.status(200).json({
-      message: 'Sikeres bejelentkezés!',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        is_admin: user.is_admin,
-        is_verified: user.is_verified,
-      },
+    req.login(user, (loginErr) => {
+      if (loginErr) {
+        console.error('SESSION LOGIN HIBA:', loginErr);
+        return res.status(500).json({
+          error: 'Sikeres jelszóellenőrzés történt, de a session létrehozása nem sikerült.',
+        });
+      }
+
+      return res.status(200).json({
+        message: 'Sikeres bejelentkezés!',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          is_admin: user.is_admin,
+          is_verified: user.is_verified,
+          profile_image: user.profile_image || null,
+        },
+      });
     });
   } catch (err) {
     console.error('LOGIN HIBA:', err);
     return res.status(500).json({ error: err.message });
   }
+});
+
+// KIJELENTKEZÉS
+// Útvonal: POST /api/users/logout
+router.post('/logout', (req, res) => {
+  req.logout((logoutErr) => {
+    if (logoutErr) {
+      return res.status(500).json({ error: 'Kijelentkezési hiba.' });
+    }
+
+    req.session.destroy((sessionErr) => {
+      if (sessionErr) {
+        return res.status(500).json({ error: 'Session törlési hiba.' });
+      }
+
+      res.clearCookie('connect.sid');
+      return res.status(200).json({ message: 'Sikeres kijelentkezés.' });
+    });
+  });
 });
 
 // Profil adatok lekérése

@@ -49,7 +49,30 @@ async function sendAdminRegistrationEmail(user, token) {
   });
 }
 
+async function sendPasswordResetEmail(to, name, token) {
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    subject: 'Elfelejtett jelszó - F1 Academy',
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Szia ${name}!</h2>
+        <p>Jelszó-visszaállítási kérelmet kaptunk az F1 Academy fiókodhoz.</p>
+        <p>Ha valóban te indítottad el a jelszó-visszaállítás folyamatát, kattints az alábbi linkre:</p>
+        <p>
+          <a href="${resetLink}" target="_blank">${resetLink}</a>
+        </p>
+        <p>Ha nem te indítottad el ezt a folyamatot, nincs semmi teendőd, hagyd figyelmen kívül ezt az emailt.</p>
+        <p>A link 1 óráig érvényes.</p>
+      </div>
+    `,
+  });
+}
+
 module.exports = {
   sendVerificationEmail,
   sendAdminRegistrationEmail,
+  sendPasswordResetEmail,
 };

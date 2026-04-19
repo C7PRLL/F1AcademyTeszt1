@@ -15,6 +15,8 @@ import Profile from './pages/Profile';
 import Track from './pages/Track';
 import AuthSuccess from './pages/AuthSuccess';
 import ActivateAccountPage from './pages/ActivateAccountPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 import './App.css';
 
@@ -47,6 +49,8 @@ function App() {
           <Route path="/track" element={<Track />} />
           <Route path="/auth-success" element={<AuthSuccess />} />
           <Route path="/activate-account" element={<ActivateAccountPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </Router>
     </>
