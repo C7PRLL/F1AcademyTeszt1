@@ -27,7 +27,7 @@ function Register() {
         password: '',
       });
 
-      alert('Sikeres regisztráció! Most már bejelentkezhetsz.');
+      alert('Sikeres regisztráció! Az email címed megerősítése utánbejelentkezhetsz.');
       navigate('/login');
     } catch (err) {
       setMessage(
