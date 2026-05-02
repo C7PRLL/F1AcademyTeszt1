@@ -81,17 +81,21 @@ db.sequelize
     });
 
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash('admin', 10);
+      const defaultAdminPassword = 'Admin123!';
+      const hashedPassword = await bcrypt.hash(defaultAdminPassword, 10);
 
       await User.create({
         name: 'admin',
         email: 'admin@admin.com',
+        plainPassword: defaultAdminPassword,
         password: hashedPassword,
         is_admin: true,
         is_verified: true,
       });
 
       console.log('✅ Alap admin user létrehozva');
+      console.log('Admin email: admin@admin.com');
+      console.log('Admin jelszó: Admin123!');
     } else {
       console.log('ℹ️ Az admin user már létezik');
     }

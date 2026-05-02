@@ -10,6 +10,7 @@ export default function ActivateAccountPage() {
 
   useEffect(() => {
     if (hasRequested.current) return;
+
     hasRequested.current = true;
 
     const activate = async () => {
@@ -31,8 +32,7 @@ export default function ActivateAccountPage() {
       } catch (err) {
         setMessage('');
         setError(
-          err.response?.data?.error ||
-            'Hiba történt a fiók aktiválása közben.'
+          err.response?.data?.error || 'Hiba történt a fiók aktiválása közben.'
         );
       }
     };
@@ -41,13 +41,18 @@ export default function ActivateAccountPage() {
   }, [searchParams]);
 
   return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
-      <h1>Fiók aktiválása</h1>
+    <main className="activate-page">
+      <div className="activate-card">
+        <h1>Fiók aktiválása</h1>
 
-      {message && <p>{message}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+        {message && <p className="activate-success">{message}</p>}
 
-      <Link to="/login">Bejelentkezés</Link>
-    </div>
+        {error && <p className="activate-error">{error}</p>}
+
+        <Link className="activate-login-link" to="/login">
+          Bejelentkezés
+        </Link>
+      </div>
+    </main>
   );
 }

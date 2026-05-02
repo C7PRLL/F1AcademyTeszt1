@@ -1,16 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
+const { ValidationError } = require('sequelize');
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+
 const {
   sendVerificationEmail,
   sendAdminRegistrationEmail,
   sendPasswordResetEmail,
 } = require('../utils/mailer');
+
+const {
+  validatePassword,
+} = require('../utils/passwordValidator');
 
 const storage = multer.diskStorage({
   destination: './uploads/',
@@ -31,6 +37,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function handleRouteError(res, err) {
+  if (err.statusCode === 400 || err instanceof ValidationError) {
+    return res.status(400).json({
+      error: err.errors?.[0]?.message || err.message,
+    });
+  }
+
+  return res.status(500).json({ error: err.message });
+}
+
 // REGISZTRÁCIÓ
 router.post('/register', async (req, res) => {
   try {
@@ -42,6 +58,8 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    validatePassword(password);
+
     const existing = await User.findOne({ where: { email } });
 
     if (existing) {
@@ -49,12 +67,14 @@ router.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const newUser = await User.create({
       name,
       email,
+      plainPassword: password,
       password: hashedPassword,
       is_verified: false,
       verification_token: verificationToken,
@@ -62,11 +82,10 @@ router.post('/register', async (req, res) => {
     });
 
     await sendVerificationEmail(newUser.email, newUser.name, verificationToken);
-    await sendAdminRegistrationEmail(newUser, verificationToken);
+    await sendAdminRegistrationEmail(newUser);
 
     return res.status(201).json({
-      message:
-        'Sikeres regisztráció! Ellenőrizd az emailedet a fiók aktiválásához.',
+      message: 'Sikeres regisztráció! Ellenőrizd az emailedet a fiók aktiválásához.',
       user: {
         id: newUser.id,
         name: newUser.name,
@@ -76,7 +95,7 @@ router.post('/register', async (req, res) => {
     });
   } catch (err) {
     console.error('REGISTER HIBA:', err);
-    return res.status(500).json({ error: err.message });
+    return handleRouteError(res, err);
   }
 });
 
@@ -152,6 +171,7 @@ router.post('/forgot-password', async (req, res) => {
     user.password_reset_expires_at = resetExpiresAt;
 
     await user.save();
+
     await sendPasswordResetEmail(user.email, user.name, resetToken);
 
     return res.status(200).json({
@@ -205,14 +225,15 @@ router.post('/reset-password', async (req, res) => {
 
     if (!token || !password || !confirmPassword) {
       return res.status(400).json({
-        error:
-          'A token, az új jelszó és a megerősítés megadása kötelező.',
+        error: 'A token, az új jelszó és a megerősítés megadása kötelező.',
       });
     }
 
     if (password !== confirmPassword) {
       return res.status(400).json({ error: 'A két jelszó nem egyezik.' });
     }
+
+    validatePassword(password);
 
     const user = await User.findOne({
       where: { password_reset_token: token },
@@ -231,6 +252,7 @@ router.post('/reset-password', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    user.plainPassword = password;
     user.password = hashedPassword;
     user.password_reset_token = null;
     user.password_reset_expires_at = null;
@@ -242,7 +264,7 @@ router.post('/reset-password', async (req, res) => {
     });
   } catch (err) {
     console.error('RESET PASSWORD HIBA:', err);
-    return res.status(500).json({ error: err.message });
+    return handleRouteError(res, err);
   }
 });
 
@@ -270,6 +292,8 @@ router.post('/change-password', async (req, res) => {
       });
     }
 
+    validatePassword(newPassword);
+
     const user = await User.findByPk(req.user.id);
 
     if (!user) {
@@ -291,6 +315,7 @@ router.post('/change-password', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    user.plainPassword = newPassword;
     user.password = hashedPassword;
     user.password_reset_token = null;
     user.password_reset_expires_at = null;
@@ -302,7 +327,7 @@ router.post('/change-password', async (req, res) => {
     });
   } catch (err) {
     console.error('CHANGE PASSWORD HIBA:', err);
-    return res.status(500).json({ error: err.message });
+    return handleRouteError(res, err);
   }
 });
 
@@ -338,12 +363,15 @@ router.post('/contact-admin', async (req, res) => {
       subject: `[F1 Academy] Üzenet a profil oldalról - ${subject}`,
       html: `
         <h2>Új üzenet érkezett a profil oldalról</h2>
+
         <p><strong>Név:</strong> ${user.name}</p>
         <p><strong>Email:</strong> ${user.email}</p>
         <p><strong>Felhasználó ID:</strong> ${user.id}</p>
+
         <p><strong>Tárgy:</strong> ${subject}</p>
+
         <p><strong>Üzenet:</strong></p>
-        <div style="white-space: pre-wrap;">${message}</div>
+        <p>${message}</p>
       `,
     });
 
@@ -388,6 +416,7 @@ router.post('/login', async (req, res) => {
     req.login(user, (loginErr) => {
       if (loginErr) {
         console.error('SESSION LOGIN HIBA:', loginErr);
+
         return res.status(500).json({
           error:
             'Sikeres jelszóellenőrzés történt, de a session létrehozása nem sikerült.',
@@ -426,18 +455,22 @@ router.post('/logout', (req, res) => {
 
       res.clearCookie('connect.sid');
 
-      return res.status(200).json({ message: 'Sikeres kijelentkezés.' });
+      return res.status(200).json({
+        message: 'Sikeres kijelentkezés.',
+      });
     });
   });
 });
 
-// Profil adatok lekérése
+// PROFIL ADATOK LEKÉRÉSE
 router.get('/:id', async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ error: 'Felhasználó nem található.' });
+      return res.status(404).json({
+        error: 'Felhasználó nem található.',
+      });
     }
 
     return res.json(user);
@@ -446,7 +479,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Profil frissítése
+// PROFIL FRISSÍTÉSE
 router.put('/update/:id', upload.single('image'), async (req, res) => {
   try {
     const { bio, favorite_team, favorite_pilot } = req.body;

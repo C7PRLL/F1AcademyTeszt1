@@ -1,6 +1,11 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
+const {
+  PASSWORD_RULE_MESSAGE,
+  isPasswordValid,
+} = require('../utils/passwordValidator');
+
 const User = sequelize.define(
   'User',
   {
@@ -19,6 +24,21 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+    },
+
+    plainPassword: {
+      type: DataTypes.VIRTUAL,
+      validate: {
+        isStrongEnough(value) {
+          if (!value) {
+            return;
+          }
+
+          if (!isPasswordValid(value)) {
+            throw new Error(PASSWORD_RULE_MESSAGE);
+          }
+        },
+      },
     },
 
     password: {
@@ -97,5 +117,7 @@ const User = sequelize.define(
     timestamps: true,
   }
 );
+
+User.PASSWORD_RULE_MESSAGE = PASSWORD_RULE_MESSAGE;
 
 module.exports = User;

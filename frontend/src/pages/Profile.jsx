@@ -6,11 +6,13 @@ function Profile() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+
   const [formData, setFormData] = useState({
     bio: '',
     favorite_team: '',
     favorite_pilot: '',
   });
+
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,13 +46,17 @@ function Profile() {
           axios.get(`http://localhost:5000/api/users/${storedUser.id}`, {
             withCredentials: true,
           }),
-          axios.get(`http://localhost:5000/api/bookings/my-bookings/${storedUser.id}`, {
-            withCredentials: true,
-          }),
+          axios.get(
+            `http://localhost:5000/api/bookings/my-bookings/${storedUser.id}`,
+            {
+              withCredentials: true,
+            }
+          ),
         ]);
 
         if (userRes.data) {
           setUser(userRes.data);
+
           setFormData({
             bio: userRes.data.bio || '',
             favorite_team: userRes.data.favorite_team || '',
@@ -74,9 +80,11 @@ function Profile() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+
     if (!user) return;
 
     const data = new FormData();
+
     data.append('bio', formData.bio);
     data.append('favorite_team', formData.favorite_team);
     data.append('favorite_pilot', formData.favorite_pilot);
@@ -108,6 +116,7 @@ function Profile() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+
     if (!user) return;
 
     if (
@@ -137,19 +146,27 @@ function Profile() {
         }
       );
 
-      alert(res.data?.message || 'A jelszó sikeresen módosult.\nKérlek, jelentkezz be újra.');
+      alert(
+        res.data?.message ||
+          'A jelszó sikeresen módosult.\nKérlek, jelentkezz be újra.'
+      );
+
       localStorage.removeItem('user');
       navigate('/login');
     } catch (error) {
       console.error('Jelszó módosítási hiba:', error);
+
       const message =
-        error?.response?.data?.error || 'Hiba történt a jelszó módosítása során.';
+        error?.response?.data?.error ||
+        'Hiba történt a jelszó módosítása során.';
+
       alert(message);
     }
   };
 
   const handleAdminMessageSend = async (e) => {
     e.preventDefault();
+
     if (!user) return;
 
     if (!adminMessageData.subject || !adminMessageData.message) {
@@ -170,14 +187,17 @@ function Profile() {
       );
 
       alert(res.data?.message || 'Az üzenet sikeresen elküldve.');
+
       setAdminMessageData({
         subject: '',
         message: '',
       });
     } catch (error) {
       console.error('Admin üzenetküldési hiba:', error);
+
       alert(
-        error?.response?.data?.error || 'Hiba történt az üzenet elküldése során.'
+        error?.response?.data?.error ||
+          'Hiba történt az üzenet elküldése során.'
       );
     }
   };
@@ -185,23 +205,36 @@ function Profile() {
   const handleCancelBooking = async (bookingId) => {
     if (!user) return;
 
-    const confirmed = window.confirm('Biztosan le szeretnéd mondani ezt a foglalást?');
+    const confirmed = window.confirm(
+      'Biztosan le szeretnéd mondani ezt a foglalást?'
+    );
+
     if (!confirmed) return;
 
     try {
       setCancelLoadingId(bookingId);
 
-      const res = await axios.delete(`http://localhost:5000/api/bookings/${bookingId}`, {
-        data: { user_id: user.id },
-        withCredentials: true,
-      });
+      const res = await axios.delete(
+        `http://localhost:5000/api/bookings/${bookingId}`,
+        {
+          data: {
+            user_id: user.id,
+          },
+          withCredentials: true,
+        }
+      );
 
       alert(res.data?.message || 'A foglalás sikeresen lemondva.');
-      setBookings((prev) => prev.filter((booking) => booking.id !== bookingId));
+
+      setBookings((prev) =>
+        prev.filter((booking) => booking.id !== bookingId)
+      );
     } catch (error) {
       console.error('Foglalás lemondási hiba:', error);
+
       alert(
-        error?.response?.data?.error || 'Hiba történt a foglalás lemondása során.'
+        error?.response?.data?.error ||
+          'Hiba történt a foglalás lemondása során.'
       );
     } finally {
       setCancelLoadingId(null);
@@ -213,7 +246,9 @@ function Profile() {
       await axios.post(
         'http://localhost:5000/api/users/logout',
         {},
-        { withCredentials: true }
+        {
+          withCredentials: true,
+        }
       );
     } catch (error) {
       console.error('Kijelentkezési hiba:', error);
@@ -227,6 +262,7 @@ function Profile() {
     if (!dateString) return '-';
 
     const date = new Date(dateString);
+
     return date.toLocaleDateString('hu-HU', {
       year: 'numeric',
       month: '2-digit',
@@ -236,237 +272,289 @@ function Profile() {
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', color: '#fff' }}>
-        Betöltés...
-      </div>
+      <main
+        style={{
+          minHeight: '100vh',
+          paddingTop: '120px',
+          color: '#fff',
+          textAlign: 'center',
+        }}
+      >
+        <p>Betöltés...</p>
+      </main>
     );
   }
 
   if (!user) {
     return (
-      <div style={{ padding: '40px', color: '#fff' }}>
+      <main
+        style={{
+          minHeight: '100vh',
+          paddingTop: '120px',
+          color: '#fff',
+          textAlign: 'center',
+        }}
+      >
         <h2>Profil</h2>
         <p>Nincs bejelentkezve.</p>
-        <button onClick={() => navigate('/login')}>Ugrás a belépéshez</button>
-      </div>
+
+        <button
+          type="button"
+          onClick={() => navigate('/login')}
+          style={{
+            padding: '12px 18px',
+            borderRadius: '10px',
+            border: 'none',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Ugrás a belépéshez
+        </button>
+      </main>
     );
   }
 
   return (
-    <div
+    <main
       style={{
-        maxWidth: '1280px',
-        margin: '0 auto',
-        padding: '120px 20px 48px',
-        color: '#ffffff',
+        minHeight: '100vh',
+        paddingTop: '120px',
+        paddingLeft: '24px',
+        paddingRight: '24px',
+        paddingBottom: '48px',
+        color: '#fff',
+        background: '#181922',
       }}
     >
       <div
         style={{
+          maxWidth: '1180px',
+          margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'minmax(320px, 420px) minmax(0, 1fr)',
+          gridTemplateColumns: 'minmax(280px, 380px) 1fr',
           gap: '24px',
           alignItems: 'start',
         }}
       >
-        <div style={{ display: 'grid', gap: '24px' }}>
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '20px',
+            padding: '24px',
+          }}
+        >
           <div
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '20px',
-              padding: '24px',
+              textAlign: 'center',
+              marginBottom: '24px',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                marginBottom: '20px',
-              }}
-            >
-              {user.profile_image ? (
-                <img
-                  src={`http://localhost:5000/uploads/${user.profile_image}`}
-                  alt="Profilkép"
+            {user.profile_image ? (
+              <img
+                src={`http://localhost:5000/uploads/${user.profile_image}`}
+                alt="Profilkép"
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '3px solid rgba(255,255,255,0.15)',
+                  marginBottom: '16px',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  borderRadius: '50%',
+                  background: '#e10600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '42px',
+                  fontWeight: 'bold',
+                  margin: '0 auto 16px',
+                }}
+              >
+                {user.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+            )}
+
+            <h3 style={{ margin: '0 0 8px' }}>{user.name}</h3>
+            <p style={{ margin: 0, opacity: 0.8 }}>{user.email}</p>
+
+            {user.is_admin && (
+              <p
+                style={{
+                  display: 'inline-block',
+                  marginTop: '12px',
+                  padding: '6px 12px',
+                  borderRadius: '999px',
+                  background: 'rgba(225,6,0,0.18)',
+                  color: '#ff4b4b',
+                  fontWeight: 'bold',
+                  fontSize: '13px',
+                }}
+              >
+                Admin fiók
+              </p>
+            )}
+          </div>
+
+          {!user.is_admin && (
+            <>
+              <h3 style={{ marginTop: '24px', marginBottom: '16px' }}>
+                Üzenet küldése az adminnak
+              </h3>
+
+              <form onSubmit={handleAdminMessageSend}>
+                <input
+                  type="text"
+                  placeholder="Tárgy"
+                  value={adminMessageData.subject}
+                  onChange={(e) =>
+                    setAdminMessageData({
+                      ...adminMessageData,
+                      subject: e.target.value,
+                    })
+                  }
                   style={{
-                    width: '74px',
-                    height: '74px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '2px solid rgba(255,255,255,0.12)',
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'rgba(255,255,255,0.06)',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    marginBottom: '12px',
                   }}
                 />
-              ) : (
-                <div
+
+                <textarea
+                  placeholder="Üzenet"
+                  rows="4"
+                  value={adminMessageData.message}
+                  onChange={(e) =>
+                    setAdminMessageData({
+                      ...adminMessageData,
+                      message: e.target.value,
+                    })
+                  }
                   style={{
-                    width: '74px',
-                    height: '74px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'rgba(255,255,255,0.12)',
-                    fontSize: '28px',
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    background: 'rgba(255,255,255,0.06)',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    marginBottom: '14px',
+                    resize: 'vertical',
+                  }}
+                />
+
+                <button
+                  type="submit"
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    cursor: 'pointer',
                     fontWeight: 'bold',
                   }}
                 >
-                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
-              )}
-
-              <div>
-                <h3 style={{ margin: 0 }}>{user.name}</h3>
-                <p style={{ margin: '6px 0 0', opacity: 0.8 }}>{user.email}</p>
-              </div>
-            </div>
-
-      
-          </div>
+                  Üzenet küldése
+                </button>
+              </form>
+            </>
+          )}
 
           <div
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '20px',
-              padding: '24px',
+              marginTop: '24px',
+              paddingTop: '24px',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
             }}
           >
             <h3 style={{ marginTop: 0, marginBottom: '16px' }}>
-              Üzenet küldése az adminnak
+              Foglalt időpontjaim
             </h3>
 
-            <form onSubmit={handleAdminMessageSend}>
-              <input
-                type="text"
-                placeholder="Tárgy"
-                value={adminMessageData.subject}
-                onChange={(e) =>
-                  setAdminMessageData({
-                    ...adminMessageData,
-                    subject: e.target.value,
-                  })
-                }
-                style={{
-                  width: '100%',
-                  padding: '12px 14px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  background: 'rgba(255,255,255,0.06)',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  marginBottom: '12px',
-                }}
-              />
-
-              <textarea
-                placeholder="Írd ide az üzeneted..."
-                rows="5"
-                value={adminMessageData.message}
-                onChange={(e) =>
-                  setAdminMessageData({
-                    ...adminMessageData,
-                    message: e.target.value,
-                  })
-                }
-                style={{
-                  width: '100%',
-                  padding: '12px 14px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  background: 'rgba(255,255,255,0.06)',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  outline: 'none',
-                  boxSizing: 'border-box',
-                  marginBottom: '14px',
-                  resize: 'vertical',
-                }}
-              />
-
-              <button
-                type="submit"
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}
-              >
-                Üzenet küldése
-              </button>
-            </form>
-
-            <div
-              style={{
-                marginTop: '24px',
-                paddingTop: '24px',
-                borderTop: '1px solid rgba(255,255,255,0.1)',
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: '16px' }}>
-                Foglalt időpontjaim
-              </h3>
-
-              {bookingsLoading ? (
-                <p style={{ opacity: 0.8, margin: 0 }}>Foglalások betöltése...</p>
-              ) : bookings.length === 0 ? (
-                <p style={{ opacity: 0.8, margin: 0 }}>
-                  Jelenleg nincs foglalt időpontod.
-                </p>
-              ) : (
-                <div style={{ display: 'grid', gap: '12px' }}>
-                  {bookings.map((booking) => (
+            {bookingsLoading ? (
+              <p style={{ opacity: 0.8, margin: 0 }}>
+                Foglalások betöltése...
+              </p>
+            ) : bookings.length === 0 ? (
+              <p style={{ opacity: 0.8, margin: 0 }}>
+                Jelenleg nincs foglalt időpontod.
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {bookings.map((booking) => (
+                  <div
+                    key={booking.id}
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '14px',
+                      padding: '16px',
+                    }}
+                  >
                     <div
-                      key={booking.id}
                       style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '14px',
-                        padding: '16px',
+                        display: 'grid',
+                        gap: '8px',
+                        marginBottom: '14px',
                       }}
                     >
-                      <div style={{ display: 'grid', gap: '8px', marginBottom: '14px' }}>
-                        <div>
-                          <strong>Gokart típusa:</strong>{' '}
-                          {booking.activity_type || '-'}
-                        </div>
-                        <div>
-                          <strong>Dátum:</strong> {formatDate(booking.booking_date)}
-                        </div>
-                        <div>
-                          <strong>Idősáv:</strong> {booking.time_slot || '-'}
-                        </div>
+                      <div>
+                        <strong>Gokart típusa:</strong>{' '}
+                        {booking.activity_type || '-'}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleCancelBooking(booking.id)}
-                        disabled={cancelLoadingId === booking.id}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          cursor: cancelLoadingId === booking.id ? 'not-allowed' : 'pointer',
-                          fontWeight: 'bold',
-                          opacity: cancelLoadingId === booking.id ? 0.7 : 1,
-                        }}
-                      >
-                        {cancelLoadingId === booking.id
-                          ? 'Lemondás folyamatban...'
-                          : 'Foglalás lemondása'}
-                      </button>
+                      <div>
+                        <strong>Dátum:</strong>{' '}
+                        {formatDate(booking.booking_date)}
+                      </div>
+
+                      <div>
+                        <strong>Idősáv:</strong> {booking.time_slot || '-'}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCancelBooking(booking.id)}
+                      disabled={cancelLoadingId === booking.id}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        cursor:
+                          cancelLoadingId === booking.id
+                            ? 'not-allowed'
+                            : 'pointer',
+                        fontWeight: 'bold',
+                        opacity: cancelLoadingId === booking.id ? 0.7 : 1,
+                      }}
+                    >
+                      {cancelLoadingId === booking.id
+                        ? 'Lemondás folyamatban...'
+                        : 'Foglalás lemondása'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -479,6 +567,7 @@ function Profile() {
           }}
         >
           <h2 style={{ marginBottom: '8px', marginTop: 0 }}>Saját Profil</h2>
+
           <p style={{ opacity: 0.8, marginBottom: '24px' }}>
             Kezeld az adataidat és a megjelenésedet
           </p>
@@ -489,10 +578,14 @@ function Profile() {
             <label style={{ display: 'block', marginBottom: '8px' }}>
               Rólam (Bio)
             </label>
+
             <textarea
               value={formData.bio}
               onChange={(e) =>
-                setFormData({ ...formData, bio: e.target.value })
+                setFormData({
+                  ...formData,
+                  bio: e.target.value,
+                })
               }
               placeholder="Írj magadról pár szót..."
               rows="4"
@@ -514,11 +607,15 @@ function Profile() {
             <label style={{ display: 'block', marginBottom: '8px' }}>
               Kedvenc Csapat
             </label>
+
             <input
               type="text"
               value={formData.favorite_team}
               onChange={(e) =>
-                setFormData({ ...formData, favorite_team: e.target.value })
+                setFormData({
+                  ...formData,
+                  favorite_team: e.target.value,
+                })
               }
               style={{
                 width: '100%',
@@ -537,11 +634,15 @@ function Profile() {
             <label style={{ display: 'block', marginBottom: '8px' }}>
               Kedvenc Versenyző
             </label>
+
             <input
               type="text"
               value={formData.favorite_pilot}
               onChange={(e) =>
-                setFormData({ ...formData, favorite_pilot: e.target.value })
+                setFormData({
+                  ...formData,
+                  favorite_pilot: e.target.value,
+                })
               }
               style={{
                 width: '100%',
@@ -560,11 +661,15 @@ function Profile() {
             <label style={{ display: 'block', marginBottom: '8px' }}>
               Profilkép módosítása
             </label>
+
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setImage(e.target.files[0])}
-              style={{ marginBottom: '20px', color: '#fff' }}
+              style={{
+                marginBottom: '20px',
+                color: '#fff',
+              }}
             />
 
             <button
@@ -590,6 +695,7 @@ function Profile() {
             <label style={{ display: 'block', marginBottom: '8px' }}>
               Jelenlegi jelszó
             </label>
+
             <input
               type="password"
               value={passwordData.currentPassword}
@@ -616,6 +722,7 @@ function Profile() {
             <label style={{ display: 'block', marginBottom: '8px' }}>
               Új jelszó
             </label>
+
             <input
               type="password"
               value={passwordData.newPassword}
@@ -642,6 +749,7 @@ function Profile() {
             <label style={{ display: 'block', marginBottom: '8px' }}>
               Új jelszó megerősítése
             </label>
+
             <input
               type="password"
               value={passwordData.confirmNewPassword}
@@ -679,9 +787,11 @@ function Profile() {
               Jelszó módosítása
             </button>
           </form>
+
+          <hr style={{ margin: '32px 0', opacity: 0.3 }} />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

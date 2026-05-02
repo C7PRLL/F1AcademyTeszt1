@@ -174,3 +174,57 @@ select option { background-color: var(--sotet-bg); color: #fff; }
     #nav ul { margin-top: 10px; gap: 0.8em; flex-wrap: wrap; justify-content: center; }
     .button { min-width: 100%; }
 }
+.activate-page {
+  min-height: 100vh;
+  padding-top: 8em;
+  padding-left: 1.5em;
+  padding-right: 1.5em;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: var(--sotet-bg);
+}
+
+.activate-card {
+  width: 100%;
+  max-width: 650px;
+  padding: 3em 2em;
+  text-align: center;
+  background: rgba(23, 24, 32, 0.85);
+  border-radius: 10px;
+  border-top: 4px solid var(--piros);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.activate-card h1 {
+  margin-bottom: 1em;
+  font-size: 2.2em;
+  line-height: 1.2;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.activate-success {
+  margin-bottom: 0.8em;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.1em;
+}
+
+.activate-error {
+  margin-bottom: 0.8em;
+  color: var(--piros);
+  font-size: 1.1em;
+}
+
+.activate-login-link {
+  display: inline-block;
+  margin-top: 0.5em;
+  color: var(--piros);
+  font-weight: 700;
+  font-size: 1.05em;
+}
+
+.activate-login-link:hover {
+  color: #fff;
+}
